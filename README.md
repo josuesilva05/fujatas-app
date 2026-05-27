@@ -106,3 +106,68 @@ Ao expandir o projeto, siga o fluxo abaixo:
    * Adicione subcomponentes em `components/`.
    * Crie uma Public API exportando o componente principal em `index.ts`.
    * Crie a página correspondente em `src/pages/` consumindo `@/features/user-profile`.
+
+---
+
+## 🌳 Fluxo de Trabalho e Padronização (Git)
+
+Para manter o repositório organizado, o histórico de commits limpo e inteligível, adotamos boas práticas de desenvolvimento baseadas em branches bem estruturadas e **Conventional Commits**.
+
+### 🌿 Desenvolvimento com Branches
+
+Toda e qualquer nova funcionalidade, correção ou melhoria deve ser desenvolvida em uma branch separada criada a partir da branch principal (`main`).
+
+#### Nomenclatura das Branches
+Utilizamos prefixos claros que indicam a intenção da alteração no código:
+
+* **`feat/` ou `feature/`**: Desenvolvimento de novas funcionalidades.
+  * *Exemplo:* `feature/login-social`
+* **`fix/` ou `bugfix/`**: Correção de bugs.
+  * *Exemplo:* `fix/erro-validacao-senha`
+* **`hotfix/`**: Correção urgente e imediata para produção.
+  * *Exemplo:* `hotfix/crash-ao-salvar-dados`
+* **`docs/`**: Alterações exclusivas na documentação.
+  * *Exemplo:* `docs/guia-de-commits`
+* **`refactor/`**: Melhoria ou reestruturação interna de código sem alterar o comportamento externo.
+  * *Exemplo:* `refactor/otimizacao-dashboard`
+* **`chore/`**: Tarefas de manutenção do projeto (como atualizar dependências, scripts de build, configurações de ferramentas).
+  * *Exemplo:* `chore/atualiza-dependencias`
+
+---
+
+### ✍️ Commits Bem Estruturados (Conventional Commits)
+
+Adotamos a convenção de commits para garantir um histórico padronizado, de fácil leitura e que viabilize a automação de releases.
+
+#### Estrutura da Mensagem
+```text
+<tipo>[escopo opcional]: <descrição curta em letras minúsculas>
+
+[corpo opcional com mais detalhes das alterações feitas]
+
+[rodapé opcional com referências a tarefas/issues, e.g., Closes #142]
+```
+
+#### Tipos Principais de Commit
+* **`feat`**: Adiciona uma nova funcionalidade (feature) ao sistema.
+  * *Exemplo:* `feat(auth): adiciona login com conta do google`
+* **`fix`**: Corrige um bug ou problema operacional.
+  * *Exemplo:* `fix(checkout): corrige cálculo de frete com desconto`
+* **`docs`**: Mudanças exclusivas na documentação (como este README).
+  * *Exemplo:* `docs: atualiza guia de desenvolvimento do projeto`
+* **`style`**: Alterações de estilo de código que não afetam seu comportamento lógico (espaços, linting com Biome, ponto e vírgula, formatação).
+  * *Exemplo:* `style: formata arquivos com o biome`
+* **`refactor`**: Mudanças no código que não corrigem um bug nem adicionam uma funcionalidade, com o objetivo de melhorar a estrutura.
+  * *Exemplo:* `refactor(ui): simplifica estados internos do modal de feedback`
+* **`perf`**: Alteração que melhora a performance da aplicação.
+  * *Exemplo:* `perf(dashboard): otimiza renderização de gráficos complexos`
+* **`test`**: Criação ou ajuste de testes automatizados.
+  * *Exemplo:* `test(hooks): adiciona testes unitários para useLocalStorage`
+* **`chore`**: Tarefas menores ou de infraestrutura que não alteram código fonte de produção.
+  * *Exemplo:* `chore: atualiza versao do typescript`
+
+#### Boas Práticas Recomendadas
+1. **Mensagens no imperativo/presente**: Use "adiciona", "corrige", "cria" em vez de "adicionado", "corrigido", "criado".
+2. **Commits Atômicos**: Procure fazer commits focados e pequenos. É muito melhor ter vários commits explicando passos específicos do que um único commit gigante misturando múltiplos tópicos.
+3. **Escopo explícito**: Sempre que fizer alterações em uma área específica do código, informe o escopo entre parênteses para maior precisão (exemplo: `feat(ui): ...`, `fix(auth): ...`).
+
