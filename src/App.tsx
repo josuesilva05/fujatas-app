@@ -1,8 +1,8 @@
-import './App.css'
-import TestPage from './TestPage'
+import "@/styles/App.css";
+import TestPage from "@/pages/TestPage";
 
 function App() {
-  return <TestPage />
+	return <TestPage />;
 }
 
-export default App
+export default App;
