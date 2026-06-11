@@ -62,7 +62,7 @@ export default function FeedbackForm() {
 						className="mt-2 w-full rounded-2xl border border-slate-700 bg-slate-950/80 px-4 py-3 text-sm text-white outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/30"
 					/>
 				</div>
-				<Button type="submit" variant="primary" className="w-full">
+				<Button type="submit" variant="default" className="w-full">
 					Enviar mensagem
 				</Button>
 			</form>
