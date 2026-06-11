@@ -31,3 +31,26 @@ export async function loginWithJson(
 		throw new Error("Não foi possível conectar ao servidor BIAP.");
 	}
 }
+
+export interface UserSession {
+	id: string;
+	email: string;
+	papel: string;
+	orgao_id: string | null;
+	fornecedor_id: string | null;
+}
+
+export async function getMe(): Promise<UserSession> {
+	try {
+		const response = await api.get<UserSession>("/auth/me");
+		return response.data;
+	} catch (error: unknown) {
+		if (axios.isAxiosError(error)) {
+			const message =
+				error.response?.data?.detail ||
+				"Erro ao recuperar dados da sessão do usuário.";
+			throw new Error(message);
+		}
+		throw new Error("Não foi possível conectar ao servidor BIAP.");
+	}
+}

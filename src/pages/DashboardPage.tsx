@@ -1,335 +1,514 @@
-import Button from "@/components/ui/Button";
+import { ChevronDown, LogOut } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+
+// Import modular layouts
+import {
+	BuyerCart,
+	BuyerCatalog,
+	BuyerOrders,
+	ManagerApprovals,
+	ManagerAtaMonitor,
+	ManagerAtaUpload,
+	SupplierBalances,
+	SupplierSales,
+} from "@/features/dashboard";
+
+interface UserSession {
+	email: string;
+	papel: string;
+	orgao_id: string | null;
+	fornecedor_id: string | null;
+}
 
 interface DashboardPageProps {
-	user: {
-		email: string;
-		papel: string;
-		orgao_id: string | null;
-		fornecedor_id: string | null;
-	};
+	user: UserSession;
 	onLogout: () => void;
 }
 
+interface CartItem {
+	id: string;
+	ataNumero: string;
+	objeto: string;
+	fornecedor: string;
+	valorUnitario: number;
+	saldoTotal: number;
+	saldoConsumido: number;
+	qty: number;
+	type: "direta" | "carona";
+}
+
 export default function DashboardPage({ user, onLogout }: DashboardPageProps) {
-	const getRoleLabel = (papel: string) => {
-		switch (papel) {
-			case "ADMIN_GERENCIADOR":
-				return "Administrador Gestor";
-			case "COMPRADOR":
-				return "Órgão Comprador";
-			case "FORNECEDOR":
-				return "Fornecedor Licitante";
-			default:
-				return papel;
+	// Support simulating different roles for layout preview
+	const [activeRole, setActiveRole] = useState<string>(user.papel);
+	const [activeTab, setActiveTab] = useState<string>("");
+	const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+
+	// Shopping Cart State (high-fidelity interaction for Buyer role)
+	const [cart, setCart] = useState<CartItem[]>([]);
+
+	const profileMenuRef = useRef<HTMLDivElement>(null);
+
+	// Close profile menu when clicking outside or pressing Escape
+	useEffect(() => {
+		if (!isProfileMenuOpen) return;
+
+		const handleOutsideClick = (e: MouseEvent) => {
+			if (
+				profileMenuRef.current &&
+				!profileMenuRef.current.contains(e.target as Node)
+			) {
+				setIsProfileMenuOpen(false);
+			}
+		};
+
+		const handleKeyDown = (e: KeyboardEvent) => {
+			if (e.key === "Escape") {
+				setIsProfileMenuOpen(false);
+			}
+		};
+
+		document.addEventListener("mousedown", handleOutsideClick);
+		document.addEventListener("keydown", handleKeyDown);
+		return () => {
+			document.removeEventListener("mousedown", handleOutsideClick);
+			document.removeEventListener("keydown", handleKeyDown);
+		};
+	}, [isProfileMenuOpen]);
+
+	// Reset active tab on role change to first tab of new role
+	useEffect(() => {
+		if (activeRole === "COMPRADOR") {
+			setActiveTab("vitrine");
+		} else if (activeRole === "ADMIN_GERENCIADOR") {
+			setActiveTab("autorizacoes");
+		} else if (activeRole === "FORNECEDOR") {
+			setActiveTab("saldos");
 		}
+	}, [activeRole]);
+
+	// Cart Operations
+	const handleAddToCart = (
+		item: any,
+		qty: number,
+		type: "direta" | "carona",
+	) => {
+		setCart((prev) => {
+			const existingIndex = prev.findIndex(
+				(c) => c.id === item.id && c.type === type,
+			);
+			if (existingIndex > -1) {
+				const updated = [...prev];
+				updated[existingIndex].qty += qty;
+				return updated;
+			}
+			return [
+				...prev,
+				{
+					id: item.id,
+					ataNumero: item.ataNumero,
+					objeto: item.objeto,
+					fornecedor: item.fornecedor,
+					valorUnitario: item.valorUnitario,
+					saldoTotal: item.saldoTotal,
+					saldoConsumido: item.saldoConsumido,
+					qty,
+					type,
+				},
+			];
+		});
+		// Switch to cart tab automatically to showcase addition
+		setActiveTab("carrinho");
 	};
 
-	const getRoleColor = (papel: string) => {
-		switch (papel) {
-			case "ADMIN_GERENCIADOR":
-				return "bg-blue-50 text-blue-700 border-blue-200";
-			case "COMPRADOR":
-				return "bg-purple-50 text-purple-700 border-purple-200";
-			case "FORNECEDOR":
-				return "bg-emerald-50 text-emerald-700 border-emerald-200";
-			default:
-				return "bg-slate-50 text-slate-700 border-slate-200";
-		}
+	const handleUpdateCartQty = (id: string, qty: number) => {
+		setCart((prev) =>
+			prev.map((item) => (item.id === id ? { ...item, qty } : item)),
+		);
+	};
+
+	const handleRemoveCartItem = (id: string) => {
+		setCart((prev) => prev.filter((item) => item.id !== id));
+	};
+
+	const handleCheckoutSuccess = () => {
+		setCart([]);
 	};
 
 	return (
-		<div className="min-h-screen bg-slate-50 text-slate-700 flex flex-col font-sans select-none">
-			{/* Top Corporate Bar */}
-			<header className="bg-white border-b border-slate-200/80 px-6 py-4 flex items-center justify-between shadow-sm relative z-10">
-				<div className="flex items-center gap-3">
-					<div className="flex items-center justify-center w-9 h-9 rounded-xl bg-biap-blue shadow-md shadow-blue-500/10">
-						<svg
-							className="w-5 h-5 text-white"
-							fill="none"
-							viewBox="0 0 24 24"
-							stroke="currentColor"
-							strokeWidth={2.5}
-							role="img"
-							aria-label="BIAP Logo"
+		<div className="min-h-screen bg-[#F7F6F2] text-slate-900 flex flex-col md:flex-row relative font-sans overflow-hidden select-none">
+			{/* LAYOUT CONTAINER: SIDEBAR & MAIN SHEET */}
+
+			{/* SIDEBAR NAVIGATION (Adopts Column 3 visual style) */}
+			<aside className="w-full md:w-72 shrink-0 border-b md:border-b-0 md:border-r border-slate-950/10 flex flex-col justify-between p-6 overflow-y-auto bg-[#FAF9F5]">
+				{/* Sidebar Top: Logo & Main Actions */}
+				<div className="space-y-6">
+					<div className="border-b border-slate-900/10 pb-4">
+						<span className="text-[10px] font-sans font-semibold tracking-wider text-slate-400 block uppercase">
+							PORTAL REGIONAL
+						</span>
+						<h1 className="text-xl font-light font-display text-slate-900 uppercase tracking-wider leading-none mt-1">
+							BIAP{" "}
+							<span className="text-slate-400 text-xs font-sans tracking-normal">
+								/ INTRANET
+							</span>
+						</h1>
+					</div>
+
+					{/* Vertical Navigation Links */}
+					<nav className="space-y-1.5 pt-2">
+						<span className="text-[9px] font-sans font-bold tracking-wider text-slate-400 block uppercase mb-2">
+							MENU DE AÇÕES
+						</span>
+
+						{activeRole === "COMPRADOR" && (
+							<>
+								<button
+									type="button"
+									onClick={() => setActiveTab("vitrine")}
+									className={`w-full text-left px-3 py-2 text-xs font-sans font-medium border transition cursor-pointer ${
+										activeTab === "vitrine"
+											? "border-slate-950 bg-slate-950 text-white"
+											: "border-slate-950/10 bg-white hover:bg-slate-50 text-slate-600"
+									}`}
+								>
+									Vitrine (Catálogo)
+								</button>
+								<button
+									type="button"
+									onClick={() => setActiveTab("carrinho")}
+									className={`w-full text-left px-3 py-2 text-xs font-sans font-medium border transition flex items-center justify-between cursor-pointer ${
+										activeTab === "carrinho"
+											? "border-slate-950 bg-slate-950 text-white"
+											: "border-slate-950/10 bg-white hover:bg-slate-50 text-slate-600"
+									}`}
+								>
+									<span>Carrinho</span>
+									<span
+										className={`px-1.5 py-0.5 text-[10px] font-sans font-bold rounded-sm ${
+											activeTab === "carrinho"
+												? "bg-white text-slate-950"
+												: "bg-slate-950 text-white"
+										}`}
+									>
+										{cart.reduce((acc, c) => acc + c.qty, 0)}
+									</span>
+								</button>
+								<button
+									type="button"
+									onClick={() => setActiveTab("pedidos")}
+									className={`w-full text-left px-3 py-2 text-xs font-sans font-medium border transition cursor-pointer ${
+										activeTab === "pedidos"
+											? "border-slate-950 bg-slate-950 text-white"
+											: "border-slate-950/10 bg-white hover:bg-slate-50 text-slate-600"
+									}`}
+								>
+									Meus Pedidos
+								</button>
+							</>
+						)}
+
+						{activeRole === "ADMIN_GERENCIADOR" && (
+							<>
+								<button
+									type="button"
+									onClick={() => setActiveTab("autorizacoes")}
+									className={`w-full text-left px-3 py-2 text-xs font-sans font-medium border transition cursor-pointer ${
+										activeTab === "autorizacoes"
+											? "border-slate-950 bg-slate-950 text-white"
+											: "border-slate-950/10 bg-white hover:bg-slate-50 text-slate-600"
+									}`}
+								>
+									Autorizações Pendentes
+								</button>
+								<button
+									type="button"
+									onClick={() => setActiveTab("cadastro")}
+									className={`w-full text-left px-3 py-2 text-xs font-sans font-medium border transition cursor-pointer ${
+										activeTab === "cadastro"
+											? "border-slate-950 bg-slate-950 text-white"
+											: "border-slate-950/10 bg-white hover:bg-slate-50 text-slate-600"
+									}`}
+								>
+									Cadastro / Upload ATA
+								</button>
+								<button
+									type="button"
+									onClick={() => setActiveTab("monitoramento")}
+									className={`w-full text-left px-3 py-2 text-xs font-sans font-medium border transition cursor-pointer ${
+										activeTab === "monitoramento"
+											? "border-slate-950 bg-slate-950 text-white"
+											: "border-slate-950/10 bg-white hover:bg-slate-50 text-slate-600"
+									}`}
+								>
+									Monitoramento Geral
+								</button>
+							</>
+						)}
+
+						{activeRole === "FORNECEDOR" && (
+							<>
+								<button
+									type="button"
+									onClick={() => setActiveTab("saldos")}
+									className={`w-full text-left px-3 py-2 text-xs font-sans font-medium border transition cursor-pointer ${
+										activeTab === "saldos"
+											? "border-slate-950 bg-slate-950 text-white"
+											: "border-slate-950/10 bg-white hover:bg-slate-50 text-slate-600"
+									}`}
+								>
+									Central de Saldos
+								</button>
+								<button
+									type="button"
+									onClick={() => setActiveTab("vendas")}
+									className={`w-full text-left px-3 py-2 text-xs font-sans font-medium border transition cursor-pointer ${
+										activeTab === "vendas"
+											? "border-slate-950 bg-slate-950 text-white"
+											: "border-slate-950/10 bg-white hover:bg-slate-50 text-slate-600"
+									}`}
+								>
+									Notificações de Vendas
+								</button>
+							</>
+						)}
+					</nav>
+				</div>
+
+				{/* Sidebar Bottom: Session Card & Clock */}
+				<div className="space-y-4 pt-6 border-t border-slate-900/10 mt-6 shrink-0">
+					{/* Profile Button with Avatar & Popover Dropdown */}
+					<div className="relative" ref={profileMenuRef}>
+						{isProfileMenuOpen && (
+							<div
+								id="profile-menu-dropdown"
+								role="menu"
+								className="absolute bottom-full mb-2 left-0 right-0 bg-[#FAF9F5] border border-slate-950/15 shadow-xl p-4 font-sans text-xs z-50 animate-popover-in space-y-3 origin-bottom"
+							>
+								<span className="text-[8px] font-sans font-bold tracking-wider text-slate-400 block mb-2 border-b border-slate-950/10 pb-1">
+									§ SESSÃO DO USUÁRIO
+								</span>
+								<div className="space-y-3">
+									<div>
+										<span className="text-slate-500 uppercase block font-bold text-[8px] tracking-wider mb-0.5">
+											E-mail:
+										</span>
+										<span
+											className="font-semibold text-slate-900 block truncate"
+											title={user.email}
+										>
+											{user.email}
+										</span>
+									</div>
+									<div className="border-t border-slate-950/10 pt-2.5">
+										<span className="text-slate-500 uppercase block mb-1.5 font-bold text-[8px] tracking-wider">
+											Perfil de Atuação:
+										</span>
+										<div className="space-y-1" role="none">
+											<button
+												type="button"
+												role="menuitem"
+												onClick={() => {
+													setActiveRole("COMPRADOR");
+													setIsProfileMenuOpen(false);
+												}}
+												className={`w-full text-left px-2.5 py-1.5 text-xs font-sans font-medium border transition flex items-center gap-2 cursor-pointer focus:outline-none focus-visible:ring-1 focus-visible:ring-slate-950 ${
+													activeRole === "COMPRADOR"
+														? "border-slate-950 bg-slate-950 text-white"
+														: "border-slate-950/10 bg-white hover:bg-slate-50 text-slate-600"
+												}`}
+											>
+												<span className="text-xs">🛍️</span>
+												<span>Órgão Comprador</span>
+											</button>
+											<button
+												type="button"
+												role="menuitem"
+												onClick={() => {
+													setActiveRole("ADMIN_GERENCIADOR");
+													setIsProfileMenuOpen(false);
+												}}
+												className={`w-full text-left px-2.5 py-1.5 text-xs font-sans font-medium border transition flex items-center gap-2 cursor-pointer focus:outline-none focus-visible:ring-1 focus-visible:ring-slate-950 ${
+													activeRole === "ADMIN_GERENCIADOR"
+														? "border-slate-950 bg-slate-950 text-white"
+														: "border-slate-950/10 bg-white hover:bg-slate-50 text-slate-600"
+												}`}
+											>
+												<span className="text-xs">🏛️</span>
+												<span>Órgão Gerenciador</span>
+											</button>
+											<button
+												type="button"
+												role="menuitem"
+												onClick={() => {
+													setActiveRole("FORNECEDOR");
+													setIsProfileMenuOpen(false);
+												}}
+												className={`w-full text-left px-2.5 py-1.5 text-xs font-sans font-medium border transition flex items-center gap-2 cursor-pointer focus:outline-none focus-visible:ring-1 focus-visible:ring-slate-950 ${
+													activeRole === "FORNECEDOR"
+														? "border-slate-950 bg-slate-950 text-white"
+														: "border-slate-950/10 bg-white hover:bg-slate-50 text-slate-600"
+												}`}
+											>
+												<span className="text-xs">🚚</span>
+												<span>Fornecedor Licitante</span>
+											</button>
+										</div>
+									</div>
+									<div className="border-t border-slate-950/10 pt-2.5">
+										<button
+											type="button"
+											role="menuitem"
+											onClick={onLogout}
+											className="w-full flex items-center justify-between hover:bg-slate-950 hover:text-white border border-slate-950/10 hover:border-slate-950 transition font-medium text-xs cursor-pointer p-2 bg-white focus:outline-none focus-visible:ring-1 focus-visible:ring-slate-950"
+										>
+											<span className="flex items-center gap-1.5">
+												<LogOut className="w-3.5 h-3.5" />
+												<span>Encerrar Sessão</span>
+											</span>
+										</button>
+									</div>
+								</div>
+							</div>
+						)}
+
+						<button
+							type="button"
+							onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+							aria-haspopup="menu"
+							aria-expanded={isProfileMenuOpen}
+							aria-controls={
+								isProfileMenuOpen ? "profile-menu-dropdown" : undefined
+							}
+							className="w-full flex items-center justify-between p-2.5 bg-white border border-slate-950/10 hover:border-slate-950/20 transition cursor-pointer text-left focus:outline-none focus-visible:ring-1 focus-visible:ring-slate-950"
 						>
-							<path
-								strokeLinecap="round"
-								strokeLinejoin="round"
-								d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+							<div className="flex items-center gap-3 min-w-0">
+								<div className="w-8 h-8 shrink-0 bg-slate-950 text-white font-sans flex items-center justify-center font-bold text-xs border border-slate-950">
+									{user.email.charAt(0).toUpperCase()}
+								</div>
+								<div className="min-w-0">
+									<span className="text-xs font-sans font-bold text-slate-900 block truncate">
+										{user.email.split("@")[0]}
+									</span>
+									<span className="text-[10px] font-sans text-slate-500 block mt-0.5">
+										{activeRole === "COMPRADOR" && "🛍️ Comprador"}
+										{activeRole === "ADMIN_GERENCIADOR" && "🏛️ Gerenciador"}
+										{activeRole === "FORNECEDOR" && "🚚 Fornecedor"}
+									</span>
+								</div>
+							</div>
+							<ChevronDown
+								className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${isProfileMenuOpen ? "rotate-180" : ""}`}
 							/>
-						</svg>
-					</div>
-					<div>
-						<h2 className="text-md font-bold tracking-tight text-slate-900 uppercase">
-							BIAP
-						</h2>
-						<span className="text-[9px] text-slate-400 font-extrabold uppercase tracking-widest block -mt-0.5">
-							Painel do Usuário
-						</span>
+						</button>
 					</div>
 				</div>
+			</aside>
 
-				<div className="flex items-center gap-4">
-					<div className="hidden sm:flex flex-col text-right">
-						<span className="text-xs font-semibold text-slate-900 leading-tight">
-							{user.email}
-						</span>
-						<span className="text-[10px] text-slate-400 font-medium">
-							Órgão/Identificador:{" "}
-							{user.orgao_id || user.fornecedor_id || "Geral"}
-						</span>
+			{/* MAIN CONTENT SHEET */}
+			<div className="flex-grow flex flex-col min-h-screen">
+				<main className="flex-grow p-4 sm:p-6 md:p-8 lg:p-10 overflow-y-auto max-w-7xl w-full mx-auto pb-12">
+					{/* Elevated Paper Sheet representing the legal dossier/docket */}
+					<div className="bg-[#FAF9F5] border border-slate-950/15 p-6 md:p-10 min-h-[calc(100vh-6rem)] shadow-[0_4px_25px_rgba(0,0,0,0.015)] relative animate-fade-in">
+						{/* Official Watermark Seal */}
+						<div className="absolute top-6 right-6 pointer-events-none opacity-[0.03] select-none hidden md:block">
+							<svg className="w-20 h-20 text-slate-950" viewBox="0 0 100 100">
+								<circle
+									cx="50"
+									cy="50"
+									r="45"
+									fill="none"
+									stroke="currentColor"
+									strokeWidth="1.5"
+									strokeDasharray="3 2"
+								/>
+								<circle
+									cx="50"
+									cy="50"
+									r="38"
+									fill="none"
+									stroke="currentColor"
+									strokeWidth="0.5"
+								/>
+								<text
+									x="50"
+									y="54"
+									textAnchor="middle"
+									className="fill-current font-mono text-[5px] font-extrabold uppercase tracking-widest"
+								>
+									★ HOMOLOGADO ★
+								</text>
+							</svg>
+						</div>
+
+						{/* Active tab content rendering */}
+						{activeRole === "COMPRADOR" && (
+							<>
+								{activeTab === "vitrine" && (
+									<BuyerCatalog onAddToCart={handleAddToCart} />
+								)}
+								{activeTab === "carrinho" && (
+									<BuyerCart
+										cart={cart}
+										onUpdateQty={handleUpdateCartQty}
+										onRemove={handleRemoveCartItem}
+										onCheckout={handleCheckoutSuccess}
+									/>
+								)}
+								{activeTab === "pedidos" && <BuyerOrders />}
+							</>
+						)}
+
+						{activeRole === "ADMIN_GERENCIADOR" && (
+							<>
+								{activeTab === "autorizacoes" && <ManagerApprovals />}
+								{activeTab === "cadastro" && <ManagerAtaUpload />}
+								{activeTab === "monitoramento" && <ManagerAtaMonitor />}
+							</>
+						)}
+
+						{activeRole === "FORNECEDOR" && (
+							<>
+								{activeTab === "saldos" && <SupplierBalances />}
+								{activeTab === "vendas" && <SupplierSales />}
+							</>
+						)}
 					</div>
+				</main>
+			</div>
 
-					<span
-						className={`text-[10px] font-bold px-2.5 py-1 rounded-full border uppercase ${getRoleColor(
-							user.papel,
-						)}`}
-					>
-						{getRoleLabel(user.papel)}
-					</span>
-
-					<Button
-						type="button"
-						variant="outline"
-						onClick={onLogout}
-						className="py-1 px-3 h-8 text-xs font-semibold flex items-center gap-1.5 cursor-pointer border-slate-200 hover:bg-slate-50 text-slate-600 hover:text-slate-900 rounded-xl shadow-xs"
-					>
-						<span>Sair</span>
-						<svg
-							className="w-3.5 h-3.5"
-							fill="none"
-							viewBox="0 0 24 24"
-							stroke="currentColor"
-							strokeWidth={2.5}
-							role="img"
-							aria-label="Logout Icon"
-						>
-							<path
-								strokeLinecap="round"
-								strokeLinejoin="round"
-								d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-							/>
-						</svg>
-					</Button>
-				</div>
-			</header>
-
-			{/* Main Workspace Area */}
-			<main className="flex-grow p-6 sm:p-8 max-w-7xl w-full mx-auto grid gap-6">
-				{/* Top Welcome Section */}
-				<div className="bg-white border border-slate-200/80 p-6 rounded-3xl shadow-[0_4px_25px_rgba(0,0,0,0.02)]">
-					<h1 className="text-2xl font-bold font-display text-slate-900">
-						Bem-vindo ao Portal de Licitações BIAP!
-					</h1>
-					<p className="mt-1.5 text-sm text-slate-500 max-w-2xl leading-relaxed">
-						Sua autenticação foi concluída com sucesso via API segura. Abaixo
-						estão as ferramentas e informações disponibilizadas para o seu
-						perfil de <strong>{getRoleLabel(user.papel)}</strong>.
-					</p>
-				</div>
-
-				{/* Dashboard widgets based on authenticated role */}
-				{user.papel === "ADMIN_GERENCIADOR" && (
-					<div className="grid gap-6">
-						{/* Stats grid */}
-						<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-							<div className="bg-white border border-slate-200/80 p-5 rounded-2xl shadow-sm">
-								<span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">
-									Atas Ativas sob sua Gestão
-								</span>
-								<span className="text-3xl font-bold text-slate-900 font-display block mt-1.5">
-									14 Atas
-								</span>
-								<span className="text-[10px] text-biap-green font-semibold mt-1 inline-block">
-									100% de vigência
-								</span>
-							</div>
-
-							<div className="bg-white border border-slate-200/80 p-5 rounded-2xl shadow-sm">
-								<span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">
-									Adesões Pendentes de Decisão
-								</span>
-								<span className="text-3xl font-bold text-slate-900 font-display block mt-1.5">
-									3 Pedidos
-								</span>
-								<span className="text-[10px] text-biap-warning font-semibold mt-1 inline-block">
-									Aguardando justificativa
-								</span>
-							</div>
-
-							<div className="bg-white border border-slate-200/80 p-5 rounded-2xl shadow-sm">
-								<span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">
-									Licitantes Ativos Homologados
-								</span>
-								<span className="text-3xl font-bold text-slate-900 font-display block mt-1.5">
-									87 Empresas
-								</span>
-								<span className="text-[10px] text-slate-400 font-semibold mt-1 inline-block">
-									Documentação em dia
-								</span>
-							</div>
-						</div>
-
-						{/* Quick Actions */}
-						<div className="bg-white border border-slate-200/80 p-6 rounded-3xl shadow-sm">
-							<h3 className="text-sm font-extrabold text-slate-900 uppercase tracking-wider mb-4">
-								Centro de Ações Administrativas
-							</h3>
-							<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-								<Button className="w-full h-11 text-xs uppercase font-extrabold tracking-wider bg-biap-brand hover:bg-slate-800 text-white rounded-xl shadow-xs cursor-pointer">
-									Cadastrar Nova ATA (Carga Completa)
-								</Button>
-								<Button
-									variant="outline"
-									className="w-full h-11 text-xs uppercase font-extrabold tracking-wider border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl shadow-xs cursor-pointer"
-								>
-									Visualizar Fila de Homologação
-								</Button>
-								<Button
-									variant="outline"
-									className="w-full h-11 text-xs uppercase font-extrabold tracking-wider border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl shadow-xs cursor-pointer"
-								>
-									Configurar Limites de Carona
-								</Button>
-							</div>
-						</div>
-					</div>
-				)}
-
-				{user.papel === "COMPRADOR" && (
-					<div className="grid gap-6">
-						{/* Stats grid */}
-						<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-							<div className="bg-white border border-slate-200/80 p-5 rounded-2xl shadow-sm">
-								<span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">
-									Pedidos Enviados
-								</span>
-								<span className="text-3xl font-bold text-slate-900 font-display block mt-1.5">
-									8 Pedidos
-								</span>
-								<span className="text-[10px] text-biap-green font-semibold mt-1 inline-block">
-									5 autorizados • 3 pendentes
-								</span>
-							</div>
-
-							<div className="bg-white border border-slate-200/80 p-5 rounded-2xl shadow-sm">
-								<span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">
-									Volume em Negociações
-								</span>
-								<span className="text-3xl font-bold text-slate-900 font-display block mt-1.5">
-									R$ 142K
-								</span>
-								<span className="text-[10px] text-biap-blue font-semibold mt-1 inline-block">
-									Adesões diretas e caronas
-								</span>
-							</div>
-
-							<div className="bg-white border border-slate-200/80 p-5 rounded-2xl shadow-sm">
-								<span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">
-									Itens no Carrinho
-								</span>
-								<span className="text-3xl font-bold text-slate-900 font-display block mt-1.5">
-									4 Itens
-								</span>
-								<span className="text-[10px] text-slate-400 font-semibold mt-1 inline-block">
-									Prontos para checkout
-								</span>
-							</div>
-						</div>
-
-						{/* Quick Actions */}
-						<div className="bg-white border border-slate-200/80 p-6 rounded-3xl shadow-sm">
-							<h3 className="text-sm font-extrabold text-slate-900 uppercase tracking-wider mb-4">
-								Módulo de Compras (Marketplace B2G)
-							</h3>
-							<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-								<Button className="w-full h-11 text-xs uppercase font-extrabold tracking-wider bg-biap-blue hover:bg-blue-700 text-white rounded-xl shadow-xs cursor-pointer">
-									Pesquisar Itens & Saldo Físico
-								</Button>
-								<Button
-									variant="outline"
-									className="w-full h-11 text-xs uppercase font-extrabold tracking-wider border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl shadow-xs cursor-pointer"
-								>
-									Ir para o Carrinho de Compras
-								</Button>
-								<Button
-									variant="outline"
-									className="w-full h-11 text-xs uppercase font-extrabold tracking-wider border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl shadow-xs cursor-pointer"
-								>
-									Consultar Minhas Adesões
-								</Button>
-							</div>
-						</div>
-					</div>
-				)}
-
-				{user.papel === "FORNECEDOR" && (
-					<div className="grid gap-6">
-						{/* Stats grid */}
-						<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-							<div className="bg-white border border-slate-200/80 p-5 rounded-2xl shadow-sm">
-								<span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">
-									Itens Homologados Ativos
-								</span>
-								<span className="text-3xl font-bold text-slate-900 font-display block mt-1.5">
-									6 Itens
-								</span>
-								<span className="text-[10px] text-biap-green font-semibold mt-1 inline-block">
-									100% disponíveis
-								</span>
-							</div>
-
-							<div className="bg-white border border-slate-200/80 p-5 rounded-2xl shadow-sm">
-								<span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">
-									Vendas Homologadas no Portal
-								</span>
-								<span className="text-3xl font-bold text-slate-900 font-display block mt-1.5">
-									R$ 310K
-								</span>
-								<span className="text-[10px] text-biap-blue font-semibold mt-1 inline-block">
-									Pedidos liquidados
-								</span>
-							</div>
-
-							<div className="bg-white border border-slate-200/80 p-5 rounded-2xl shadow-sm">
-								<span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">
-									Notas Fiscais de Entrega Pendentes
-								</span>
-								<span className="text-3xl font-bold text-slate-900 font-display block mt-1.5">
-									2 Guias
-								</span>
-								<span className="text-[10px] text-biap-warning font-semibold mt-1 inline-block">
-									Aguardando emissão
-								</span>
-							</div>
-						</div>
-
-						{/* Quick Actions */}
-						<div className="bg-white border border-slate-200/80 p-6 rounded-3xl shadow-sm">
-							<h3 className="text-sm font-extrabold text-slate-900 uppercase tracking-wider mb-4">
-								Central do Licitante
-							</h3>
-							<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-								<Button className="w-full h-11 text-xs uppercase font-extrabold tracking-wider bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-xs cursor-pointer">
-									Ver Notificações de Vendas (Pedidos)
-								</Button>
-								<Button
-									variant="outline"
-									className="w-full h-11 text-xs uppercase font-extrabold tracking-wider border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl shadow-xs cursor-pointer"
-								>
-									Gerenciar Catálogo & Preços Vencidos
-								</Button>
-								<Button
-									variant="outline"
-									className="w-full h-11 text-xs uppercase font-extrabold tracking-wider border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl shadow-xs cursor-pointer"
-								>
-									Histórico de Fornecimentos
-								</Button>
-							</div>
-						</div>
-					</div>
-				)}
-			</main>
+			<style>{`
+				@keyframes fadeIn {
+					0% {
+						opacity: 0;
+						transform: translateY(8px);
+					}
+					100% {
+						opacity: 1;
+						transform: translateY(0);
+					}
+				}
+				.animate-fade-in {
+					animation: fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+				}
+				@keyframes popoverIn {
+					0% {
+						opacity: 0;
+						transform: translateY(4px) scale(0.98);
+					}
+					100% {
+						opacity: 1;
+						transform: translateY(0) scale(1);
+					}
+				}
+				.animate-popover-in {
+					animation: popoverIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+				}
+				.vertical-text {
+					writing-mode: vertical-rl;
+					text-orientation: mixed;
+					transform: rotate(180deg);
+				}
+			`}</style>
 		</div>
 	);
 }

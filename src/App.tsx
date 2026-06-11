@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import DashboardPage from "@/pages/DashboardPage";
 import LoginPage from "@/pages/LoginPage";
+import { getMe } from "@/services/auth";
 
 interface UserSession {
 	id: string;
@@ -17,19 +18,23 @@ function App() {
 	// Check authentication state on mount
 	useEffect(() => {
 		const token = localStorage.getItem("biap_access_token");
-		const userDataStr = localStorage.getItem("biap_user");
 
-		if (token && userDataStr) {
-			try {
-				const userData = JSON.parse(userDataStr);
-				setUser(userData);
-			} catch {
-				// Clear invalid data
-				localStorage.removeItem("biap_access_token");
-				localStorage.removeItem("biap_user");
-			}
+		if (token) {
+			getMe()
+				.then((userData) => {
+					setUser(userData);
+					setLoading(false);
+				})
+				.catch(() => {
+					// Clear invalid data
+					localStorage.removeItem("biap_access_token");
+					localStorage.removeItem("biap_user");
+					setUser(null);
+					setLoading(false);
+				});
+		} else {
+			setLoading(false);
 		}
-		setLoading(false);
 	}, []);
 
 	const handleLoginSuccess = (loginData: {

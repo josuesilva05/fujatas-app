@@ -84,7 +84,7 @@ function OfficialSeal() {
 					stroke="currentColor"
 					strokeWidth="0.75"
 				/>
-				<text className="fill-current font-mono text-[8px] uppercase tracking-[0.18em] font-extrabold">
+				<text className="fill-current font-sans text-[7px] uppercase tracking-[0.15em] font-extrabold">
 					<textPath href="#stamp-text-path" startOffset="0%">
 						★ PLATAFORMA HOMOLOGADA ★ REG. B2G BRASIL ★ PNCP ★
 					</textPath>
@@ -148,13 +148,13 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
 			<div className="min-h-screen bg-[#F7F6F2] text-slate-955 flex flex-col md:flex-row relative font-sans overflow-hidden select-none">
 				{/* COLUMN 1: STARK INDEX MARGIN */}
 				<div className="w-16 lg:w-20 border-r border-slate-955/10 flex flex-col items-center justify-between py-12 shrink-0 hidden md:flex">
-					<div className="flex items-center justify-center w-8 h-8 bg-slate-955 text-white font-mono text-xs font-bold">
+					<div className="flex items-center justify-center w-8 h-8 bg-slate-955 text-white font-sans text-xs font-bold">
 						DF
 					</div>
-					<div className="vertical-text text-[10px] uppercase font-bold tracking-[0.25em] text-slate-400 font-mono select-none">
+					<div className="vertical-text text-[9px] uppercase font-bold tracking-[0.25em] text-slate-400 font-sans select-none">
 						SISTEMA INTEGRADO DE AQUISIÇÕES FEDERAIS
 					</div>
-					<div className="text-[10px] font-mono text-slate-300 font-bold uppercase tracking-wider">
+					<div className="text-[9px] font-sans text-slate-350 font-bold uppercase tracking-wider">
 						V1.04
 					</div>
 				</div>
@@ -164,14 +164,14 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
 					{/* Top Header */}
 					<div className="border-b border-slate-900/10 pb-6">
 						<div className="flex items-center gap-2 mb-3">
-							<span className="text-[10px] uppercase font-bold tracking-[0.2em] text-slate-400 font-mono">
+							<span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 font-sans">
 								DIÁRIO DE COMPRAS PÚBLICAS
 							</span>
 						</div>
 						<h1 className="text-3xl lg:text-4xl font-extralight tracking-[0.14em] text-slate-955 uppercase font-display leading-none">
 							BIAP
 						</h1>
-						<span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest block mt-2 font-mono">
+						<span className="text-xs text-slate-550 font-bold uppercase tracking-wider block mt-2 font-sans">
 							E-commerce Público B2G
 						</span>
 					</div>
@@ -179,7 +179,7 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
 					{/* Center: Legal Abstract Section & Bulletin Feed */}
 					<div className="my-6 space-y-6">
 						<div>
-							<span className="text-[10px] font-mono font-bold tracking-[0.15em] text-slate-400 block mb-2">
+							<span className="text-[10px] font-sans font-bold tracking-wider text-slate-400 block mb-2">
 								§ 37 DA CONSTITUIÇÃO FEDERAL • LEI 14.133/21
 							</span>
 							<div className="border-y border-slate-950/10 py-5 pr-4 relative">
@@ -195,7 +195,7 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
 
 						{/* Boletim de atos públicos recentes */}
 						<div className="border-b border-slate-955/10 pb-6 relative">
-							<span className="text-[10px] font-mono font-bold tracking-[0.15em] text-slate-400 block mb-3.5">
+							<span className="text-[10px] font-sans font-bold tracking-wider text-slate-400 block mb-3.5">
 								ATOS E DIÁRIOS PUBLICADOS RECENTEMENTE
 							</span>
 							<div className="space-y-3 max-w-[580px]">
@@ -205,7 +205,7 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
 										className="flex justify-between items-start gap-4 border-b border-dashed border-slate-955/10 pb-2.5"
 									>
 										<div className="space-y-0.5">
-											<span className="text-[9px] font-mono text-slate-400 font-bold block">
+											<span className="text-[10px] font-sans text-slate-400 font-bold block">
 												{ato.data}
 											</span>
 											<h4 className="text-xs font-bold text-slate-900 tracking-wide uppercase">
@@ -221,7 +221,7 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
 											>
 												{ato.status}
 											</span>
-											<span className="text-[11px] font-mono font-bold text-slate-900 block mt-1">
+											<span className="text-xs font-sans font-bold text-slate-900 block mt-1">
 												{ato.valor}
 											</span>
 										</div>
@@ -243,7 +243,7 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
 								<div key={stat.label} className="space-y-1.5 text-slate-800">
 									<div className="flex items-center gap-1.5 text-slate-450">
 										{stat.icon}
-										<span className="text-[10px] uppercase tracking-widest font-bold font-mono">
+										<span className="text-[10px] uppercase tracking-wider font-bold font-sans">
 											{stat.label}
 										</span>
 									</div>
@@ -258,7 +258,7 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
 						</div>
 
 						{/* System feed info */}
-						<div className="mt-6 pt-4 border-t border-slate-900/10 flex justify-between items-center text-[10px] font-mono text-slate-400 font-bold uppercase">
+						<div className="mt-6 pt-4 border-t border-slate-900/10 flex justify-between items-center text-[10px] font-sans text-slate-400 font-bold uppercase">
 							<span>Sessão Oficial Ativa</span>
 							<span>{currentTime}</span>
 						</div>
@@ -273,13 +273,13 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
 							href="https://www.gov.br/transparencia/pt-br"
 							target="_blank"
 							rel="noopener noreferrer"
-							className="inline-flex items-center gap-1.5 text-[10px] text-slate-500 hover:text-slate-900 transition font-bold uppercase tracking-widest font-mono border border-slate-950/10 px-3 py-1.5 hover:bg-white bg-transparent"
+							className="inline-flex items-center gap-1.5 text-[10px] text-slate-500 hover:text-slate-900 transition font-bold uppercase tracking-wider font-sans border border-slate-955/10 px-3 py-1.5 bg-transparent hover:bg-white"
 						>
 							<span>Transparência</span>
 						</a>
 						<button
 							type="button"
-							className="inline-flex items-center gap-1 text-[10px] text-slate-500 hover:text-slate-900 transition font-bold uppercase tracking-widest font-mono border border-slate-955/10 px-3 py-1.5 bg-transparent hover:bg-white"
+							className="inline-flex items-center gap-1 text-[10px] text-slate-500 hover:text-slate-900 transition font-bold uppercase tracking-wider font-sans border border-slate-955/10 px-3 py-1.5 bg-transparent hover:bg-white"
 						>
 							<HelpCircle className="w-3.5 h-3.5" />
 							<span>Suporte</span>
@@ -294,7 +294,7 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
 					</div>
 
 					{/* Footer info */}
-					<div className="flex flex-col sm:flex-row items-center justify-between text-[10px] text-slate-400 font-bold uppercase tracking-widest font-mono gap-3 border-t border-slate-955/10 pt-5 mt-8">
+					<div className="flex flex-col sm:flex-row items-center justify-between text-[10px] text-slate-400 font-bold uppercase tracking-wider font-sans gap-3 border-t border-slate-955/10 pt-5 mt-8">
 						<span>© {new Date().getFullYear()} BIAP.</span>
 						<div className="flex gap-3">
 							<a href="#privacy" className="hover:text-slate-955 transition">
