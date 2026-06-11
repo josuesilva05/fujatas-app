@@ -79,13 +79,13 @@ const styles = {
 			"text-slate-950 uppercase tracking-widest font-extralight font-display text-xl lg:text-2xl",
 		textSub: "text-slate-500 text-xs mt-1.5 leading-relaxed font-light",
 		label:
-			"text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5 font-mono block",
+			"text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 font-sans block",
 		input:
 			"w-full pl-10 pr-4 py-2.5 bg-transparent border border-slate-955/15 rounded-none text-sm text-slate-900 placeholder-slate-400 outline-none transition-all duration-150 focus:border-slate-950 focus:bg-white font-sans",
 		button:
-			"w-full h-11 bg-slate-950 text-white hover:bg-slate-900 cursor-pointer font-bold uppercase tracking-widest text-[11px] font-mono transition-all duration-100 rounded-none mt-3 flex items-center justify-center gap-2 border border-slate-955 active:translate-y-px",
+			"w-full h-11 bg-slate-950 text-white hover:bg-slate-900 cursor-pointer font-bold uppercase tracking-wider text-xs font-sans transition-all duration-100 rounded-none mt-3 flex items-center justify-center gap-2 border border-slate-955 active:translate-y-px",
 		checkboxLabel:
-			"ml-2.5 text-[11px] text-slate-500 font-bold uppercase tracking-wider font-mono cursor-pointer select-none",
+			"ml-2.5 text-xs text-slate-500 font-bold uppercase tracking-wider font-sans cursor-pointer select-none",
 		checkbox:
 			"w-4 h-4 rounded-none border-slate-350 text-slate-955 focus:ring-0 bg-transparent transition-all cursor-pointer accent-slate-950",
 		error:
@@ -94,7 +94,7 @@ const styles = {
 		headerBorder: "mb-5 border-b border-slate-900/10 pb-3.5",
 		eyeIcon: "text-slate-400 hover:text-slate-950",
 		forgotButton:
-			"text-[10px] text-slate-500 hover:text-slate-955 font-bold uppercase tracking-wider font-mono transition underline underline-offset-4",
+			"text-xs text-slate-500 hover:text-slate-955 font-bold uppercase tracking-wider font-sans transition underline underline-offset-4",
 	},
 	planalto: {
 		textHeader: "text-slate-900 font-bold font-sans text-xl tracking-tight",
@@ -272,7 +272,7 @@ export default function LoginForm({
 						<div className="w-12 h-12 bg-slate-950 text-[#F7F6F2] flex items-center justify-center mb-6">
 							<ShieldCheck className="w-6 h-6 animate-scale-up" />
 						</div>
-						<span className="text-[11px] font-mono font-bold tracking-widest text-slate-400 block mb-1">
+						<span className="text-[10px] font-sans font-bold tracking-wider text-slate-400 block mb-1">
 							AUTENTICAÇÃO PROTOCOLADA
 						</span>
 						<h3 className="text-xl font-bold font-display text-slate-950 uppercase tracking-wider mb-2">
@@ -348,7 +348,7 @@ export default function LoginForm({
 						<div className="w-12 h-12 bg-slate-950 text-[#F7F6F2] flex items-center justify-center mb-6">
 							<ShieldCheck className="w-6 h-6 animate-scale-up" />
 						</div>
-						<span className="text-[10px] font-mono font-bold tracking-widest text-slate-400 block mb-1">
+						<span className="text-[10px] font-sans font-bold tracking-wider text-slate-400 block mb-1">
 							AUTORIZAÇÃO GOVERNAMENTAL
 						</span>
 						<h3 className="text-lg font-bold text-slate-900 uppercase tracking-wider mb-2">
@@ -389,7 +389,7 @@ export default function LoginForm({
 				<div className="relative z-10">
 					{/* Header */}
 					<div className={style.headerBorder}>
-						<span className="text-[10px] font-bold tracking-[0.2em] text-slate-450 uppercase mb-2 block font-mono">
+						<span className="text-[10px] font-bold tracking-wider text-slate-500 uppercase mb-2 block font-sans">
 							Credenciamento Geral
 						</span>
 						<h3 className={style.textHeader}>Entrar no Sistema</h3>
@@ -402,7 +402,7 @@ export default function LoginForm({
 					{errorMessage && (
 						<div className={style.error}>
 							<AlertTriangle className="w-4 h-4 flex-shrink-0 text-red-800 dark:text-red-500 mt-0.5" />
-							<span className="font-mono text-[11px]">{errorMessage}</span>
+							<span className="font-sans text-xs">{errorMessage}</span>
 						</div>
 					)}
 
