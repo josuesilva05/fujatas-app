@@ -5,6 +5,6 @@ export { default as ManagerApprovals } from "./components/ManagerApprovals";
 export { default as ManagerAtaMonitor } from "./components/ManagerAtaMonitor";
 export { default as ManagerAtaUpload } from "./components/ManagerAtaUpload";
 export { default as StatsSection } from "./components/StatsSection";
-export { default as SupplierBalances } from "./components/SupplierBalances";
-export { default as SupplierSales } from "./components/SupplierSales";
+export { default as CentralSaldos } from "./components/CentralSaldos";
+export { default as CentralNotificacoes } from "./components/CentralNotificacoes";
 export { default as TipsSection } from "./components/TipsSection";

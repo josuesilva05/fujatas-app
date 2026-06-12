@@ -9,8 +9,8 @@ import {
 	ManagerApprovals,
 	ManagerAtaMonitor,
 	ManagerAtaUpload,
-	SupplierBalances,
-	SupplierSales,
+	CentralSaldos,
+	CentralNotificacoes,
 } from "@/features/dashboard";
 
 interface UserSession {
@@ -468,8 +468,8 @@ export default function DashboardPage({ user, onLogout }: DashboardPageProps) {
 
 						{activeRole === "FORNECEDOR" && (
 							<>
-								{activeTab === "saldos" && <SupplierBalances />}
-								{activeTab === "vendas" && <SupplierSales />}
+								{activeTab === "saldos" && <CentralSaldos />}
+								{activeTab === "vendas" && <CentralNotificacoes />}
 							</>
 						)}
 					</div>
