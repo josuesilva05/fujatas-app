@@ -14,6 +14,7 @@ import {
 } from "@/features/dashboard";
 
 interface UserSession {
+	id: string;
 	email: string;
 	papel: string;
 	orgao_id: string | null;
@@ -460,9 +461,9 @@ export default function DashboardPage({ user, onLogout }: DashboardPageProps) {
 
 						{activeRole === "ADMIN_GERENCIADOR" && (
 							<>
-								{activeTab === "autorizacoes" && <ManagerApprovals />}
-								{activeTab === "cadastro" && <ManagerAtaUpload />}
-								{activeTab === "monitoramento" && <ManagerAtaMonitor />}
+								{activeTab === "autorizacoes" && <ManagerApprovals user={user} />}
+								{activeTab === "cadastro" && <ManagerAtaUpload user={user} />}
+								{activeTab === "monitoramento" && <ManagerAtaMonitor user={user} />}
 							</>
 						)}
 
