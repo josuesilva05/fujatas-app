@@ -1,4 +1,16 @@
-export default function ManagerApprovals() {
+interface UserSession {
+	id: string;
+	email: string;
+	papel: string;
+	orgao_id: string | null;
+	fornecedor_id: string | null;
+}
+
+interface ManagerApprovalsProps {
+	user: UserSession;
+}
+
+export default function ManagerApprovals({ user: _user }: ManagerApprovalsProps) {
 	return (
 		<div className="space-y-6 animate-fade-in">
 			{/* Editorial Section Title */}
