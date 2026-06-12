@@ -1,5 +1,10 @@
 import { api } from "./api";
 
+export interface ItemParticipantePayload {
+	orgao_id: string;
+	quantidade_planejada: number;
+}
+
 export interface AtaCreatePayload {
 	numero_ata: string;
 	processo_administrativo?: string;
@@ -12,8 +17,6 @@ export interface AtaCreatePayload {
 	grupos: {
 		numero_grupo: string;
 		descricao?: string;
-		orgao_id?: string;
-		quantidade_planejada?: number;
 	}[];
 	regras_carona: {
 		percentual_maximo_do_saldo: number;
@@ -27,7 +30,8 @@ export interface AtaCreatePayload {
 		unidade_medida?: string;
 		marca_modelo?: string;
 		valor_unitario: number;
-		quantidade_total_ofertada: number;
+		quantidade_total_ofertada?: number;
+		participantes: ItemParticipantePayload[];
 	}[];
 }
 
