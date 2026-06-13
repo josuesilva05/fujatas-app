@@ -1,4 +1,16 @@
-export default function ManagerAtaMonitor() {
+interface UserSession {
+	id: string;
+	email: string;
+	papel: string;
+	orgao_id: string | null;
+	fornecedor_id: string | null;
+}
+
+interface ManagerAtaMonitorProps {
+	user: UserSession;
+}
+
+export default function ManagerAtaMonitor({ user: _user }: ManagerAtaMonitorProps) {
 	return (
 		<div className="space-y-6 animate-fade-in">
 			{/* Editorial Section Title */}

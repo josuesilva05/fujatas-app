@@ -25,3 +25,5 @@ dist-ssr
 
 # Agents
 .agents/
+.gemini/
+skills-lock.json
