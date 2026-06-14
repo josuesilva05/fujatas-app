@@ -136,7 +136,7 @@ export default function DashboardPage({ user, onLogout }: DashboardPageProps) {
 	};
 
 	return (
-		<div className="min-h-screen bg-[#F7F6F2] text-slate-900 flex flex-col md:flex-row relative font-sans overflow-hidden select-none">
+		<div className="h-screen w-screen bg-[#F7F6F2] text-slate-900 flex flex-col md:flex-row relative font-sans overflow-hidden select-none">
 			{/* LAYOUT CONTAINER: SIDEBAR & MAIN SHEET */}
 
 			{/* SIDEBAR NAVIGATION (Adopts Column 3 visual style) */}
@@ -300,61 +300,63 @@ export default function DashboardPage({ user, onLogout }: DashboardPageProps) {
 											{user.email}
 										</span>
 									</div>
-									<div className="border-t border-slate-950/10 pt-2.5">
-										<span className="text-slate-500 uppercase block mb-1.5 font-bold text-[8px] tracking-wider">
-											Perfil de Atuação:
-										</span>
-										<div className="space-y-1" role="none">
-											<button
-												type="button"
-												role="menuitem"
-												onClick={() => {
-													setActiveRole("COMPRADOR");
-													setIsProfileMenuOpen(false);
-												}}
-												className={`w-full text-left px-2.5 py-1.5 text-xs font-sans font-medium border transition flex items-center gap-2 cursor-pointer focus:outline-none focus-visible:ring-1 focus-visible:ring-slate-950 ${
-													activeRole === "COMPRADOR"
-														? "border-slate-950 bg-slate-950 text-white"
-														: "border-slate-950/10 bg-white hover:bg-slate-50 text-slate-600"
-												}`}
-											>
-												<span className="text-xs">🛍️</span>
-												<span>Órgão Comprador</span>
-											</button>
-											<button
-												type="button"
-												role="menuitem"
-												onClick={() => {
-													setActiveRole("ADMIN_GERENCIADOR");
-													setIsProfileMenuOpen(false);
-												}}
-												className={`w-full text-left px-2.5 py-1.5 text-xs font-sans font-medium border transition flex items-center gap-2 cursor-pointer focus:outline-none focus-visible:ring-1 focus-visible:ring-slate-950 ${
-													activeRole === "ADMIN_GERENCIADOR"
-														? "border-slate-950 bg-slate-950 text-white"
-														: "border-slate-950/10 bg-white hover:bg-slate-50 text-slate-600"
-												}`}
-											>
-												<span className="text-xs">🏛️</span>
-												<span>Órgão Gerenciador</span>
-											</button>
-											<button
-												type="button"
-												role="menuitem"
-												onClick={() => {
-													setActiveRole("FORNECEDOR");
-													setIsProfileMenuOpen(false);
-												}}
-												className={`w-full text-left px-2.5 py-1.5 text-xs font-sans font-medium border transition flex items-center gap-2 cursor-pointer focus:outline-none focus-visible:ring-1 focus-visible:ring-slate-950 ${
-													activeRole === "FORNECEDOR"
-														? "border-slate-950 bg-slate-950 text-white"
-														: "border-slate-950/10 bg-white hover:bg-slate-50 text-slate-600"
-												}`}
-											>
-												<span className="text-xs">🚚</span>
-												<span>Fornecedor Licitante</span>
-											</button>
+									{user.papel === "ADMIN_GERENCIADOR" && (
+										<div className="border-t border-slate-950/10 pt-2.5">
+											<span className="text-slate-500 uppercase block mb-1.5 font-bold text-[8px] tracking-wider">
+												Perfil de Atuação:
+											</span>
+											<div className="space-y-1" role="none">
+												<button
+													type="button"
+													role="menuitem"
+													onClick={() => {
+														setActiveRole("COMPRADOR");
+														setIsProfileMenuOpen(false);
+													}}
+													className={`w-full text-left px-2.5 py-1.5 text-xs font-sans font-medium border transition flex items-center gap-2 cursor-pointer focus:outline-none focus-visible:ring-1 focus-visible:ring-slate-950 ${
+														activeRole === "COMPRADOR"
+															? "border-slate-950 bg-slate-950 text-white"
+															: "border-slate-950/10 bg-white hover:bg-slate-50 text-slate-600"
+													}`}
+												>
+													<span className="text-xs">🛍️</span>
+													<span>Órgão Comprador</span>
+												</button>
+												<button
+													type="button"
+													role="menuitem"
+													onClick={() => {
+														setActiveRole("ADMIN_GERENCIADOR");
+														setIsProfileMenuOpen(false);
+													}}
+													className={`w-full text-left px-2.5 py-1.5 text-xs font-sans font-medium border transition flex items-center gap-2 cursor-pointer focus:outline-none focus-visible:ring-1 focus-visible:ring-slate-950 ${
+														activeRole === "ADMIN_GERENCIADOR"
+															? "border-slate-950 bg-slate-950 text-white"
+															: "border-slate-950/10 bg-white hover:bg-slate-50 text-slate-600"
+													}`}
+												>
+													<span className="text-xs">🏛️</span>
+													<span>Órgão Gerenciador</span>
+												</button>
+												<button
+													type="button"
+													role="menuitem"
+													onClick={() => {
+														setActiveRole("FORNECEDOR");
+														setIsProfileMenuOpen(false);
+													}}
+													className={`w-full text-left px-2.5 py-1.5 text-xs font-sans font-medium border transition flex items-center gap-2 cursor-pointer focus:outline-none focus-visible:ring-1 focus-visible:ring-slate-950 ${
+														activeRole === "FORNECEDOR"
+															? "border-slate-950 bg-slate-950 text-white"
+															: "border-slate-950/10 bg-white hover:bg-slate-50 text-slate-600"
+													}`}
+												>
+													<span className="text-xs">🚚</span>
+													<span>Fornecedor Licitante</span>
+												</button>
+											</div>
 										</div>
-									</div>
+									)}
 									<div className="border-t border-slate-950/10 pt-2.5">
 										<button
 											type="button"
@@ -406,7 +408,7 @@ export default function DashboardPage({ user, onLogout }: DashboardPageProps) {
 			</aside>
 
 			{/* MAIN CONTENT SHEET */}
-			<div className="flex-grow flex flex-col min-h-screen">
+			<div className="flex-grow flex flex-col h-full md:h-screen overflow-hidden">
 				<main className="flex-grow p-4 sm:p-6 md:p-8 lg:p-10 overflow-y-auto max-w-7xl w-full mx-auto pb-12">
 					{/* Elevated Paper Sheet representing the legal dossier/docket */}
 					<div className="bg-[#FAF9F5] border border-slate-950/15 p-6 md:p-10 min-h-[calc(100vh-6rem)] shadow-[0_4px_25px_rgba(0,0,0,0.015)] relative animate-fade-in">
@@ -461,9 +463,13 @@ export default function DashboardPage({ user, onLogout }: DashboardPageProps) {
 
 						{activeRole === "ADMIN_GERENCIADOR" && (
 							<>
-								{activeTab === "autorizacoes" && <ManagerApprovals user={user} />}
+								{activeTab === "autorizacoes" && (
+									<ManagerApprovals user={user} />
+								)}
 								{activeTab === "cadastro" && <ManagerAtaUpload user={user} />}
-								{activeTab === "monitoramento" && <ManagerAtaMonitor user={user} />}
+								{activeTab === "monitoramento" && (
+									<ManagerAtaMonitor user={user} />
+								)}
 							</>
 						)}
 

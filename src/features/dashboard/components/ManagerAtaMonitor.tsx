@@ -10,7 +10,9 @@ interface ManagerAtaMonitorProps {
 	user: UserSession;
 }
 
-export default function ManagerAtaMonitor({ user: _user }: ManagerAtaMonitorProps) {
+export default function ManagerAtaMonitor({
+	user: _user,
+}: ManagerAtaMonitorProps) {
 	return (
 		<div className="space-y-6 animate-fade-in">
 			{/* Editorial Section Title */}
