@@ -1,50 +1,124 @@
+import { useEffect, useState } from "react";
+import {
+	getSupplierBalances,
+	type SupplierBalance,
+} from "@/services/supplierService";
+
 export default function SupplierBalances() {
+	const [items, setItems] = useState<SupplierBalance[]>([]);
+	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState("");
+
+	console.log("RENDERIZANDO SUPPLIER BALANCES");
+
+	useEffect(() => {
+		console.log("SUPPLIER BALANCES MONTADO");
+
+		const session = JSON.parse(
+			localStorage.getItem("biap_user") || "{}",
+		);
+
+		console.log("SESSION:", session);
+
+		const fornecedorId = session.fornecedor_id;
+
+		console.log("FORNECEDOR ID:", fornecedorId);
+
+		if (!fornecedorId) {
+			console.error("FORNECEDOR NÃO ENCONTRADO");
+
+			setError("Fornecedor não identificado.");
+			setLoading(false);
+			return;
+		}
+
+		console.log(
+			"CHAMANDO API getSupplierBalances:",
+			fornecedorId,
+		);
+
+		getSupplierBalances(fornecedorId)
+			.then((data) => {
+				console.log("DADOS RECEBIDOS:", data);
+				setItems(data);
+			})
+			.catch((err) => {
+				console.error(
+					"ERRO AO CARREGAR SALDOS:",
+					err,
+				);
+
+				setError("Erro ao carregar saldos.");
+			})
+			.finally(() => {
+				console.log("FINALIZOU REQUISIÇÃO");
+				setLoading(false);
+			});
+	}, []);
+
 	return (
 		<div className="space-y-6 animate-fade-in">
-			{/* Editorial Section Title */}
 			<div className="border-b border-slate-955/10 pb-4">
 				<span className="text-[10px] font-sans font-bold tracking-wider text-slate-400 block uppercase">
 					MÓDULO FORNECEDOR • CONTABILIDADE PÚBLICA
 				</span>
+
 				<h2 className="text-2xl font-light font-display text-slate-955 uppercase tracking-wide">
 					Central de Saldos do Licitante
 				</h2>
 			</div>
 
-			{/* Placeholder Content */}
-			<div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-				<div className="lg:col-span-8 space-y-4">
-					<div className="border border-dashed border-slate-950/20 bg-[#FAF9F5] p-12 text-center space-y-4">
-						<div className="max-w-md mx-auto space-y-2">
-							<span className="text-xs font-sans font-bold text-slate-955 bg-slate-955/5 px-3 py-1 border border-slate-955/10 inline-block">
-								Componente: Central de Saldos
-							</span>
-							<p className="text-xs text-slate-500 font-light leading-relaxed">
-								Área destinada ao licitante vencedor da concorrência para
-								acompanhar as cotas dos itens vencidos em licitação, divididas
-								entre saldo disponível, consumido por órgãos diretos e consumido
-								por caronas.
-							</p>
-						</div>
-					</div>
-				</div>
+			<div className="bg-[#FAF9F5] border border-slate-955/10 p-5">
+				{loading && <p>Carregando...</p>}
 
-				<div className="lg:col-span-4 bg-[#FAF9F5] border border-slate-955/10 p-5 space-y-5">
-					<span className="text-[10px] font-sans font-bold tracking-wider text-slate-400 block border-b border-slate-955/10 pb-2">
-						§ REGISTRO DE ADJUDICAÇÃO (MOCKUP)
-					</span>
+				{error && (
+					<p className="text-red-500">
+						{error}
+					</p>
+				)}
 
-					<div className="space-y-4 font-sans text-xs text-slate-500">
-						<p className="leading-relaxed text-xs">
-							O trâmite adjudicado exige a associação da ata correspondente e a
-							reserva de cotas físicas para atendimento aos órgãos públicos
-							demandantes.
-						</p>
-						<div className="border border-dashed border-slate-950/20 p-4 bg-[#F7F6F2]/50 text-slate-400 text-center font-bold text-[10px] uppercase tracking-wide font-sans">
-							[Livro de Saldos Inativo]
-						</div>
+				{!loading && !error && (
+					<div className="space-y-4">
+						{items.length === 0 ? (
+							<p>Nenhum item encontrado.</p>
+						) : (
+							items.map((item) => (
+								<div
+									key={item.id}
+									className="border border-slate-200 p-4"
+								>
+									<h3 className="font-semibold">
+										Item {item.numero_item}
+									</h3>
+
+									<p className="text-sm text-slate-500">
+										{item.descricao_especificacao}
+									</p>
+
+									<div className="grid grid-cols-2 gap-4 mt-3 text-sm">
+										<div>
+											Oferta Total:{" "}
+											{item.quantidade_total_ofertada}
+										</div>
+
+										<div>
+											Saldo Disponível:{" "}
+											{item.quantidade_saldo_disponivel}
+										</div>
+
+										<div>
+											Valor Unitário: R$ {item.valor_unitario}
+										</div>
+
+										<div>
+											Ata: {item.ata?.numero_ata}
+										</div>
+									</div>
+								</div>
+							))
+						)}
 					</div>
-				</div>
+				)}
 			</div>
 		</div>
 	);
