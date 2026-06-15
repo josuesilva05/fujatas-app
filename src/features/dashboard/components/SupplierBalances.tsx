@@ -14,9 +14,7 @@ export default function SupplierBalances() {
 	useEffect(() => {
 		console.log("SUPPLIER BALANCES MONTADO");
 
-		const session = JSON.parse(
-			localStorage.getItem("biap_user") || "{}",
-		);
+		const session = JSON.parse(localStorage.getItem("biap_user") || "{}");
 
 		console.log("SESSION:", session);
 
@@ -32,10 +30,7 @@ export default function SupplierBalances() {
 			return;
 		}
 
-		console.log(
-			"CHAMANDO API getSupplierBalances:",
-			fornecedorId,
-		);
+		console.log("CHAMANDO API getSupplierBalances:", fornecedorId);
 
 		getSupplierBalances(fornecedorId)
 			.then((data) => {
@@ -43,10 +38,7 @@ export default function SupplierBalances() {
 				setItems(data);
 			})
 			.catch((err) => {
-				console.error(
-					"ERRO AO CARREGAR SALDOS:",
-					err,
-				);
+				console.error("ERRO AO CARREGAR SALDOS:", err);
 
 				setError("Erro ao carregar saldos.");
 			})
@@ -59,7 +51,7 @@ export default function SupplierBalances() {
 	return (
 		<div className="space-y-6 animate-fade-in">
 			<div className="border-b border-slate-955/10 pb-4">
-				<span className="text-[10px] font-sans font-bold tracking-wider text-slate-400 block uppercase">
+				<span className="text-[10px] font-sans font-bold tracking-wider text-slate-500 block uppercase">
 					MÓDULO FORNECEDOR • CONTABILIDADE PÚBLICA
 				</span>
 
@@ -71,11 +63,7 @@ export default function SupplierBalances() {
 			<div className="bg-[#FAF9F5] border border-slate-955/10 p-5">
 				{loading && <p>Carregando...</p>}
 
-				{error && (
-					<p className="text-red-500">
-						{error}
-					</p>
-				)}
+				{error && <p className="text-red-500">{error}</p>}
 
 				{!loading && !error && (
 					<div className="space-y-4">
@@ -83,36 +71,23 @@ export default function SupplierBalances() {
 							<p>Nenhum item encontrado.</p>
 						) : (
 							items.map((item) => (
-								<div
-									key={item.id}
-									className="border border-slate-200 p-4"
-								>
-									<h3 className="font-semibold">
-										Item {item.numero_item}
-									</h3>
+								<div key={item.id} className="border border-slate-200 p-4">
+									<h3 className="font-semibold">Item {item.numero_item}</h3>
 
 									<p className="text-sm text-slate-500">
 										{item.descricao_especificacao}
 									</p>
 
 									<div className="grid grid-cols-2 gap-4 mt-3 text-sm">
-										<div>
-											Oferta Total:{" "}
-											{item.quantidade_total_ofertada}
-										</div>
+										<div>Oferta Total: {item.quantidade_total_ofertada}</div>
 
 										<div>
-											Saldo Disponível:{" "}
-											{item.quantidade_saldo_disponivel}
+											Saldo Disponível: {item.quantidade_saldo_disponivel}
 										</div>
 
-										<div>
-											Valor Unitário: R$ {item.valor_unitario}
-										</div>
+										<div>Valor Unitário: R$ {item.valor_unitario}</div>
 
-										<div>
-											Ata: {item.ata?.numero_ata}
-										</div>
+										<div>Ata: {item.ata?.numero_ata}</div>
 									</div>
 								</div>
 							))

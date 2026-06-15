@@ -458,7 +458,7 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 					<Check className="w-8 h-8" />
 				</div>
 				<div className="space-y-2">
-					<span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+					<span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
 						PROTOCOLO DE AUTUAÇÃO DE ATA
 					</span>
 					<h3 className="text-2xl font-light font-display text-slate-950 uppercase tracking-wide">
@@ -473,7 +473,7 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 
 				<div className="border border-slate-100 bg-[#FAF9F5] p-5 text-left text-xs max-w-md mx-auto space-y-3">
 					<div className="flex justify-between border-b border-dashed border-slate-200 pb-2">
-						<span className="text-slate-400 font-bold uppercase text-[9px] tracking-wider">
+						<span className="text-slate-500 font-bold uppercase text-[9px] tracking-wider">
 							Identificador (ID)
 						</span>
 						<span className="font-mono text-slate-900 font-semibold">
@@ -481,7 +481,7 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 						</span>
 					</div>
 					<div className="flex justify-between border-b border-dashed border-slate-200 pb-2">
-						<span className="text-slate-400 font-bold uppercase text-[9px] tracking-wider">
+						<span className="text-slate-500 font-bold uppercase text-[9px] tracking-wider">
 							Órgão Gerenciador
 						</span>
 						<span className="font-semibold text-slate-900">
@@ -489,7 +489,7 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 						</span>
 					</div>
 					<div className="flex justify-between">
-						<span className="text-slate-400 font-bold uppercase text-[9px] tracking-wider">
+						<span className="text-slate-500 font-bold uppercase text-[9px] tracking-wider">
 							Valor Global Autuado
 						</span>
 						<span className="font-bold text-slate-900">
@@ -549,7 +549,7 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 										? "bg-slate-950 border-slate-950 text-white shadow-lg shadow-slate-950/20"
 										: isDone
 											? "bg-slate-800 border-slate-800 text-white"
-											: "bg-white border-slate-300 text-slate-400"
+											: "bg-white border-slate-300 text-slate-500"
 								}`}
 							>
 								{isDone ? (
@@ -559,7 +559,7 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 								)}
 							</div>
 							<div className="hidden sm:block text-left">
-								<span className="text-[9px] font-bold uppercase tracking-wider text-slate-400 block">
+								<span className="text-[9px] font-bold uppercase tracking-wider text-slate-500 block">
 									Etapa {step.num}
 								</span>
 								<span
@@ -591,7 +591,7 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 		<div className="grid grid-cols-1 lg:grid-cols-12 gap-8 animate-fade-in">
 			{/* Campos */}
 			<div className="lg:col-span-8 bg-white border border-slate-955/10 p-6 space-y-6">
-				<span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block border-b border-slate-100 pb-2">
+				<span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block border-b border-slate-100 pb-2">
 					§ DADOS DE AUTUAÇÃO DA ATA
 				</span>
 
@@ -689,7 +689,7 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 
 			{/* Card do Órgão */}
 			<div className="lg:col-span-4 bg-[#FAF9F5] border border-slate-955/10 p-6 space-y-6">
-				<span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block border-b border-slate-900/10 pb-2">
+				<span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block border-b border-slate-900/10 pb-2">
 					§ ÓRGÃO GERENCIADOR RESPONSÁVEL
 				</span>
 
@@ -738,10 +738,10 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 		<div className="bg-white border border-slate-955/10 p-6 space-y-4 animate-fade-in">
 			<div className="flex justify-between items-center border-b border-slate-100 pb-2">
 				<div className="space-y-0.5">
-					<span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+					<span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
 						§ LOTES / GRUPOS ESTRUTURAIS
 					</span>
-					<p className="text-[10px] text-slate-400 font-light">
+					<p className="text-[10px] text-slate-500 font-light">
 						Defina os lotes ou grupos para organizar os itens da licitação. Os
 						órgãos participantes serão vinculados diretamente aos itens na
 						próxima etapa.
@@ -812,10 +812,10 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 		<div className="bg-white border border-slate-955/10 p-6 space-y-4 animate-fade-in">
 			<div className="flex justify-between items-center border-b border-slate-100 pb-2">
 				<div className="space-y-0.5">
-					<span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+					<span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
 						§ CADASTRAMENTO DOS ITENS DE LICITAÇÃO
 					</span>
-					<p className="text-[10px] text-slate-400 font-light">
+					<p className="text-[10px] text-slate-500 font-light">
 						Para cada item, vincule os órgãos participantes e suas quantidades.
 						A quantidade total será calculada automaticamente.
 					</p>
@@ -843,7 +843,7 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 							{/* Header do Item */}
 							<div className="flex items-center justify-between">
 								<div className="flex items-center gap-3">
-									<span className="text-[9px] font-sans font-bold text-slate-400 bg-slate-100 px-2.5 py-1 border">
+									<span className="text-[9px] font-sans font-bold text-slate-500 bg-slate-100 px-2.5 py-1 border">
 										ITEM Nº {item.numero_item}
 									</span>
 									{itemQty > 0 && (
@@ -969,7 +969,7 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 								<div className="md:col-span-3 space-y-1">
 									<label className={labelCls}>Valor Unitário *</label>
 									<div className="relative">
-										<span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-400 font-sans">
+										<span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-500 font-sans">
 											R$
 										</span>
 										<input
@@ -1032,7 +1032,7 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 
 								{item.participantes.length === 0 ? (
 									<div className="px-4 py-4 text-center">
-										<p className="text-[10px] text-slate-400 font-light italic">
+										<p className="text-[10px] text-slate-500 font-light italic">
 											Nenhum órgão vinculado. Clique em "Vincular Órgão" para
 											adicionar participantes, ou preencha a quantidade manual
 											acima.
@@ -1043,12 +1043,12 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 										{/* Header da tabela */}
 										<div className="grid grid-cols-12 gap-3 px-4 py-2 bg-slate-50/50">
 											<div className="col-span-7">
-												<span className="text-[8px] font-bold text-slate-400 uppercase tracking-wider">
+												<span className="text-[8px] font-bold text-slate-500 uppercase tracking-wider">
 													Órgão Participante
 												</span>
 											</div>
 											<div className="col-span-3">
-												<span className="text-[8px] font-bold text-slate-400 uppercase tracking-wider">
+												<span className="text-[8px] font-bold text-slate-500 uppercase tracking-wider">
 													Qtd Planejada
 												</span>
 											</div>
@@ -1141,12 +1141,12 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 		<div className="space-y-6 animate-fade-in">
 			{/* Resumo dos Dados */}
 			<div className="bg-white border border-slate-955/10 p-6 space-y-4">
-				<span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block border-b border-slate-100 pb-2">
+				<span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block border-b border-slate-100 pb-2">
 					§ RESUMO DA ATA
 				</span>
 				<div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-xs">
 					<div>
-						<span className="text-[8px] font-bold text-slate-400 uppercase tracking-wider block mb-0.5">
+						<span className="text-[8px] font-bold text-slate-500 uppercase tracking-wider block mb-0.5">
 							Número da ATA
 						</span>
 						<span className="font-semibold text-slate-900">
@@ -1154,7 +1154,7 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 						</span>
 					</div>
 					<div>
-						<span className="text-[8px] font-bold text-slate-400 uppercase tracking-wider block mb-0.5">
+						<span className="text-[8px] font-bold text-slate-500 uppercase tracking-wider block mb-0.5">
 							Processo Adm.
 						</span>
 						<span className="font-semibold text-slate-900">
@@ -1162,7 +1162,7 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 						</span>
 					</div>
 					<div>
-						<span className="text-[8px] font-bold text-slate-400 uppercase tracking-wider block mb-0.5">
+						<span className="text-[8px] font-bold text-slate-500 uppercase tracking-wider block mb-0.5">
 							Nº Pregão
 						</span>
 						<span className="font-semibold text-slate-900">
@@ -1170,7 +1170,7 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 						</span>
 					</div>
 					<div>
-						<span className="text-[8px] font-bold text-slate-400 uppercase tracking-wider block mb-0.5">
+						<span className="text-[8px] font-bold text-slate-500 uppercase tracking-wider block mb-0.5">
 							Órgão Gerenciador
 						</span>
 						<span className="font-semibold text-slate-900">
@@ -1178,7 +1178,7 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 						</span>
 					</div>
 					<div>
-						<span className="text-[8px] font-bold text-slate-400 uppercase tracking-wider block mb-0.5">
+						<span className="text-[8px] font-bold text-slate-500 uppercase tracking-wider block mb-0.5">
 							Assinatura
 						</span>
 						<span className="font-semibold text-slate-900">
@@ -1186,7 +1186,7 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 						</span>
 					</div>
 					<div>
-						<span className="text-[8px] font-bold text-slate-400 uppercase tracking-wider block mb-0.5">
+						<span className="text-[8px] font-bold text-slate-500 uppercase tracking-wider block mb-0.5">
 							Vigência
 						</span>
 						<span className="font-semibold text-slate-900">
@@ -1198,13 +1198,13 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 
 			{/* Tabela resumo dos itens */}
 			<div className="bg-white border border-slate-955/10 p-6 space-y-4">
-				<span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block border-b border-slate-100 pb-2">
+				<span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block border-b border-slate-100 pb-2">
 					§ ITENS CADASTRADOS ({itens.length})
 				</span>
 				<div className="overflow-x-auto">
 					<table className="w-full text-xs">
 						<thead>
-							<tr className="border-b border-slate-200 text-[9px] font-bold text-slate-400 uppercase tracking-wider">
+							<tr className="border-b border-slate-200 text-[9px] font-bold text-slate-500 uppercase tracking-wider">
 								<th className="text-left py-2 pr-3">Item</th>
 								<th className="text-left py-2 pr-3">Descrição</th>
 								<th className="text-left py-2 pr-3">Grupo</th>
@@ -1242,7 +1242,7 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 													{item.participantes.length} órgão(s)
 												</span>
 											) : (
-												<span className="text-[9px] text-slate-400 italic">
+												<span className="text-[9px] text-slate-500 italic">
 													manual
 												</span>
 											)}
@@ -1277,7 +1277,7 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 			{/* Regras de Carona */}
 			<div className="bg-white border border-slate-955/10 p-6 space-y-4">
 				<div className="flex justify-between items-center border-b border-slate-100 pb-2">
-					<span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+					<span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
 						§ DIRETRIZES E LIMITES DE CARONA
 					</span>
 					<button
@@ -1343,7 +1343,7 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 			{/* Barra de envio */}
 			<div className="bg-[#FAF9F5] border border-slate-955/10 p-6 flex flex-col md:flex-row justify-between items-center gap-6">
 				<div className="text-center md:text-left space-y-1">
-					<span className="text-[10px] font-sans font-bold text-slate-400 uppercase tracking-wider block">
+					<span className="text-[10px] font-sans font-bold text-slate-500 uppercase tracking-wider block">
 						VALOR TOTAL GLOBAL ESTIMADO
 					</span>
 					<h3 className="text-3xl font-light font-display text-slate-955 leading-none">
@@ -1380,7 +1380,7 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 		<div className="space-y-6 animate-fade-in font-sans">
 			{/* Header */}
 			<div className="border-b border-slate-955/10 pb-4">
-				<span className="text-[10px] font-sans font-bold tracking-wider text-slate-400 block uppercase">
+				<span className="text-[10px] font-sans font-bold tracking-wider text-slate-500 block uppercase">
 					MÓDULO ÓRGÃO GERENCIADOR • AUTUAÇÃO PÚBLICA
 				</span>
 				<h2 className="text-2xl font-light font-display text-slate-955 uppercase tracking-wide">

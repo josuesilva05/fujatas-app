@@ -151,7 +151,7 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
 					<div className="flex items-center justify-center w-8 h-8 bg-slate-955 text-white font-sans text-xs font-bold">
 						DF
 					</div>
-					<div className="vertical-text text-[9px] uppercase font-bold tracking-[0.25em] text-slate-400 font-sans select-none">
+					<div className="vertical-text text-[9px] uppercase font-bold tracking-[0.25em] text-slate-500 font-sans select-none">
 						SISTEMA INTEGRADO DE AQUISIÇÕES FEDERAIS
 					</div>
 					<div className="text-[9px] font-sans text-slate-350 font-bold uppercase tracking-wider">
@@ -164,7 +164,7 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
 					{/* Top Header */}
 					<div className="border-b border-slate-900/10 pb-6">
 						<div className="flex items-center gap-2 mb-3">
-							<span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 font-sans">
+							<span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 font-sans">
 								DIÁRIO DE COMPRAS PÚBLICAS
 							</span>
 						</div>
@@ -179,7 +179,7 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
 					{/* Center: Legal Abstract Section & Bulletin Feed */}
 					<div className="my-6 space-y-6">
 						<div>
-							<span className="text-[10px] font-sans font-bold tracking-wider text-slate-400 block mb-2">
+							<span className="text-[10px] font-sans font-bold tracking-wider text-slate-500 block mb-2">
 								§ 37 DA CONSTITUIÇÃO FEDERAL • LEI 14.133/21
 							</span>
 							<div className="border-y border-slate-950/10 py-5 pr-4 relative">
@@ -195,7 +195,7 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
 
 						{/* Boletim de atos públicos recentes */}
 						<div className="border-b border-slate-955/10 pb-6 relative">
-							<span className="text-[10px] font-sans font-bold tracking-wider text-slate-400 block mb-3.5">
+							<span className="text-[10px] font-sans font-bold tracking-wider text-slate-500 block mb-3.5">
 								ATOS E DIÁRIOS PUBLICADOS RECENTEMENTE
 							</span>
 							<div className="space-y-3 max-w-[580px]">
@@ -205,7 +205,7 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
 										className="flex justify-between items-start gap-4 border-b border-dashed border-slate-955/10 pb-2.5"
 									>
 										<div className="space-y-0.5">
-											<span className="text-[10px] font-sans text-slate-400 font-bold block">
+											<span className="text-[10px] font-sans text-slate-500 font-bold block">
 												{ato.data}
 											</span>
 											<h4 className="text-xs font-bold text-slate-900 tracking-wide uppercase">
@@ -250,7 +250,7 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
 									<h4 className="text-2xl lg:text-3xl font-extralight font-display text-slate-955 tracking-tight leading-none">
 										{stat.value}
 									</h4>
-									<p className="text-[10px] text-slate-400 leading-snug font-light font-sans">
+									<p className="text-[10px] text-slate-500 leading-snug font-light font-sans">
 										{stat.description}
 									</p>
 								</div>
@@ -258,7 +258,7 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
 						</div>
 
 						{/* System feed info */}
-						<div className="mt-6 pt-4 border-t border-slate-900/10 flex justify-between items-center text-[10px] font-sans text-slate-400 font-bold uppercase">
+						<div className="mt-6 pt-4 border-t border-slate-900/10 flex justify-between items-center text-[10px] font-sans text-slate-500 font-bold uppercase">
 							<span>Sessão Oficial Ativa</span>
 							<span>{currentTime}</span>
 						</div>
@@ -294,7 +294,7 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
 					</div>
 
 					{/* Footer info */}
-					<div className="flex flex-col sm:flex-row items-center justify-between text-[10px] text-slate-400 font-bold uppercase tracking-wider font-sans gap-3 border-t border-slate-955/10 pt-5 mt-8">
+					<div className="flex flex-col sm:flex-row items-center justify-between text-[10px] text-slate-500 font-bold uppercase tracking-wider font-sans gap-3 border-t border-slate-955/10 pt-5 mt-8">
 						<span>© {new Date().getFullYear()} BIAP.</span>
 						<div className="flex gap-3">
 							<a href="#privacy" className="hover:text-slate-955 transition">
@@ -307,31 +307,6 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
 					</div>
 				</div>
 			</div>
-
-			{/* CSS ANIMATIONS AND UTILITIES */}
-			<style>{`
-				@keyframes fadeIn {
-					0% {
-						opacity: 0;
-						transform: translateY(8px);
-					}
-					100% {
-						opacity: 1;
-						transform: translateY(0);
-					}
-				}
-				.animate-fade-in {
-					animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-				}
-				.bg-radial-bleed {
-					background: radial-gradient(circle, transparent 40%, rgba(247, 246, 242, 0.98) 78%);
-				}
-				.vertical-text {
-					writing-mode: vertical-rl;
-					text-orientation: mixed;
-					transform: rotate(180deg);
-				}
-			`}</style>
 		</div>
 	);
 }

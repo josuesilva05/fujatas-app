@@ -73,9 +73,7 @@ export async function getSupplierOrders(
 	supplierId: string,
 ): Promise<SupplierOrder[]> {
 	try {
-		const response = await api.get(
-			`/suppliers/${supplierId}/orders`,
-		);
+		const response = await api.get(`/suppliers/${supplierId}/orders`);
 
 		return response.data;
 	} catch (error) {

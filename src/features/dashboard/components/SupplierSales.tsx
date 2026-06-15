@@ -10,9 +10,7 @@ export default function SupplierSales() {
 	const [error, setError] = useState("");
 
 	useEffect(() => {
-		const session = JSON.parse(
-			localStorage.getItem("biap_user") || "{}",
-		);
+		const session = JSON.parse(localStorage.getItem("biap_user") || "{}");
 
 		const fornecedorId = session.fornecedor_id;
 
@@ -35,7 +33,7 @@ export default function SupplierSales() {
 		<div className="space-y-6 animate-fade-in">
 			{/* Editorial Section Title */}
 			<div className="border-b border-slate-955/10 pb-4">
-				<span className="text-[10px] font-sans font-bold tracking-wider text-slate-400 block uppercase">
+				<span className="text-[10px] font-sans font-bold tracking-wider text-slate-500 block uppercase">
 					MÓDULO FORNECEDOR • FLUXO DE VENDAS
 				</span>
 
@@ -90,25 +88,20 @@ export default function SupplierSales() {
 
 								<div className="grid grid-cols-2 gap-4 text-sm text-slate-600">
 									<div>
-										<strong>Tipo:</strong>{" "}
-										{order.tipo_adesao}
+										<strong>Tipo:</strong> {order.tipo_adesao}
 									</div>
 
 									<div>
-										<strong>Itens:</strong>{" "}
-										{order.itens?.length ?? 0}
+										<strong>Itens:</strong> {order.itens?.length ?? 0}
 									</div>
 
 									<div>
 										<strong>Data:</strong>{" "}
-										{new Date(
-											order.data_pedido,
-										).toLocaleDateString("pt-BR")}
+										{new Date(order.data_pedido).toLocaleDateString("pt-BR")}
 									</div>
 
 									<div>
-										<strong>ID:</strong>{" "}
-										{order.id.slice(0, 8)}
+										<strong>ID:</strong> {order.id.slice(0, 8)}
 									</div>
 								</div>
 							</div>
@@ -117,15 +110,15 @@ export default function SupplierSales() {
 
 				{/* COLUNA LATERAL */}
 				<div className="lg:col-span-4 bg-[#FAF9F5] border border-slate-955/10 p-5 space-y-5">
-					<span className="text-[10px] font-sans font-bold tracking-wider text-slate-400 block border-b border-slate-955/10 pb-2">
+					<span className="text-[10px] font-sans font-bold tracking-wider text-slate-500 block border-b border-slate-955/10 pb-2">
 						§ FATURAMENTO E LOGÍSTICA
 					</span>
 
 					<div className="space-y-4 font-sans text-xs text-slate-500">
 						<p className="leading-relaxed text-xs">
-							O trâmite logístico exige a associação da chave de
-							acesso ou número da NF-e para liberação do pagamento
-							financeiro pela administração pública.
+							O trâmite logístico exige a associação da chave de acesso ou
+							número da NF-e para liberação do pagamento financeiro pela
+							administração pública.
 						</p>
 
 						<div className="border border-slate-950/10 p-4 bg-[#F7F6F2]/50">
@@ -137,25 +130,14 @@ export default function SupplierSales() {
 							<div className="flex justify-between mb-2">
 								<span>Pendentes</span>
 								<strong>
-									{
-										orders.filter(
-											(o) =>
-												o.status === "PENDENTE",
-										).length
-									}
+									{orders.filter((o) => o.status === "PENDENTE").length}
 								</strong>
 							</div>
 
 							<div className="flex justify-between">
 								<span>Autorizados</span>
 								<strong>
-									{
-										orders.filter(
-											(o) =>
-												o.status ===
-												"AUTORIZADO",
-										).length
-									}
+									{orders.filter((o) => o.status === "AUTORIZADO").length}
 								</strong>
 							</div>
 						</div>
@@ -165,9 +147,7 @@ export default function SupplierSales() {
 								Última atualização
 							</p>
 
-							<p>
-								{new Date().toLocaleString("pt-BR")}
-							</p>
+							<p>{new Date().toLocaleString("pt-BR")}</p>
 						</div>
 					</div>
 				</div>

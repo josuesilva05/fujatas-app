@@ -10,7 +10,7 @@ export default function Card({
 	children,
 	...props
 }: CardProps) {
-	const baseStyles = "rounded-3xl border p-6 transition sm:p-8";
+	const baseStyles = "rounded-xl border p-6 transition sm:p-8";
 	const variants = {
 		default: "border-slate-800 bg-slate-900/80 shadow-lg shadow-slate-950/20",
 		dark: "border-slate-800 bg-slate-950/70 shadow-xl shadow-slate-950/20",

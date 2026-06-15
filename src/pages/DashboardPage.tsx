@@ -1,4 +1,18 @@
-import { ChevronDown, LogOut } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import {
+	Banknote,
+	Bell,
+	CheckCircle,
+	ChevronDown,
+	ClipboardList,
+	Eye,
+	FileUp,
+	LogOut,
+	Menu,
+	Package,
+	ShoppingCart,
+	X,
+} from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 // Import modular layouts
@@ -38,13 +52,81 @@ interface CartItem {
 	type: "direta" | "carona";
 }
 
+interface NavItemProps {
+	icon: LucideIcon;
+	label: string;
+	tabId: string;
+	activeTab: string;
+	onClick: (tabId: string) => void;
+	badge?: number;
+}
+
+function NavItem({
+	icon: Icon,
+	label,
+	tabId,
+	activeTab,
+	onClick,
+	badge,
+}: NavItemProps) {
+	const isActive = activeTab === tabId;
+
+	return (
+		<button
+			type="button"
+			onClick={() => onClick(tabId)}
+			aria-current={isActive ? "page" : undefined}
+			className={`w-full text-left px-3 py-2 text-xs font-sans font-medium border transition cursor-pointer flex items-center gap-2.5 ${
+				isActive
+					? "border-slate-950 bg-slate-950 text-white"
+					: "border-slate-950/10 bg-white hover:bg-slate-50 text-slate-600"
+			}`}
+		>
+			<Icon className="w-3.5 h-3.5 shrink-0" />
+			<span className="flex-1">{label}</span>
+			{badge != null && badge > 0 && (
+				<span
+					className={`px-1.5 py-0.5 text-[10px] font-sans font-bold rounded-sm ${
+						isActive ? "bg-white text-slate-950" : "bg-slate-950 text-white"
+					}`}
+				>
+					{badge}
+				</span>
+			)}
+		</button>
+	);
+}
+
+const NAV_ITEMS: Record<
+	string,
+	{ icon: LucideIcon; label: string; tabId: string }[]
+> = {
+	COMPRADOR: [
+		{ icon: Package, label: "Vitrine (Catálogo)", tabId: "vitrine" },
+		{ icon: ShoppingCart, label: "Carrinho", tabId: "carrinho" },
+		{ icon: ClipboardList, label: "Meus Pedidos", tabId: "pedidos" },
+	],
+	ADMIN_GERENCIADOR: [
+		{
+			icon: CheckCircle,
+			label: "Autorizações Pendentes",
+			tabId: "autorizacoes",
+		},
+		{ icon: FileUp, label: "Cadastro / Upload ATA", tabId: "cadastro" },
+		{ icon: Eye, label: "Monitoramento Geral", tabId: "monitoramento" },
+	],
+	FORNECEDOR: [
+		{ icon: Banknote, label: "Central de Saldos", tabId: "saldos" },
+		{ icon: Bell, label: "Notificações de Vendas", tabId: "vendas" },
+	],
+};
+
 export default function DashboardPage({ user, onLogout }: DashboardPageProps) {
-	// Support simulating different roles for layout preview
 	const [activeRole, setActiveRole] = useState<string>(user.papel);
 	const [activeTab, setActiveTab] = useState<string>("");
 	const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+	const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-	// Shopping Cart State (high-fidelity interaction for Buyer role)
 	const [cart, setCart] = useState<CartItem[]>([]);
 
 	const profileMenuRef = useRef<HTMLDivElement>(null);
@@ -76,7 +158,33 @@ export default function DashboardPage({ user, onLogout }: DashboardPageProps) {
 		};
 	}, [isProfileMenuOpen]);
 
-	// Reset active tab on role change to first tab of new role
+	// Close mobile sidebar on Escape
+	useEffect(() => {
+		if (!isSidebarOpen) return;
+
+		const handleKeyDown = (e: KeyboardEvent) => {
+			if (e.key === "Escape") {
+				setIsSidebarOpen(false);
+			}
+		};
+
+		document.addEventListener("keydown", handleKeyDown);
+		return () => document.removeEventListener("keydown", handleKeyDown);
+	}, [isSidebarOpen]);
+
+	// Lock body scroll when sidebar is open on mobile
+	useEffect(() => {
+		if (isSidebarOpen) {
+			document.body.style.overflow = "hidden";
+		} else {
+			document.body.style.overflow = "";
+		}
+		return () => {
+			document.body.style.overflow = "";
+		};
+	}, [isSidebarOpen]);
+
+	// Reset active tab on role change
 	useEffect(() => {
 		if (activeRole === "COMPRADOR") {
 			setActiveTab("vitrine");
@@ -87,7 +195,14 @@ export default function DashboardPage({ user, onLogout }: DashboardPageProps) {
 		}
 	}, [activeRole]);
 
+	const handleTabClick = (tabId: string) => {
+		setActiveTab(tabId);
+		setIsSidebarOpen(false);
+	};
+
 	// Cart Operations
+	const cartCount = cart.reduce((acc, c) => acc + c.qty, 0);
+
 	const handleAddToCart = (
 		item: any,
 		qty: number,
@@ -117,7 +232,6 @@ export default function DashboardPage({ user, onLogout }: DashboardPageProps) {
 				},
 			];
 		});
-		// Switch to cart tab automatically to showcase addition
 		setActiveTab("carrinho");
 	};
 
@@ -135,149 +249,89 @@ export default function DashboardPage({ user, onLogout }: DashboardPageProps) {
 		setCart([]);
 	};
 
+	const navItems = NAV_ITEMS[activeRole] || [];
+
 	return (
 		<div className="h-screen w-screen bg-[#F7F6F2] text-slate-900 flex flex-col md:flex-row relative font-sans overflow-hidden select-none">
-			{/* LAYOUT CONTAINER: SIDEBAR & MAIN SHEET */}
+			{/* MOBILE HEADER */}
+			<header className="md:hidden flex items-center justify-between px-4 py-3 border-b border-slate-950/10 bg-[#FAF9F5] shrink-0 z-30">
+				<button
+					type="button"
+					onClick={() => setIsSidebarOpen(true)}
+					aria-label="Abrir menu"
+					className="p-2 -ml-2 hover:bg-slate-100 transition cursor-pointer"
+				>
+					<Menu className="w-5 h-5 text-slate-700" />
+				</button>
+				<h1 className="text-sm font-display font-light uppercase tracking-wider text-slate-900">
+					BIAP
+				</h1>
+				<div className="w-9" />
+			</header>
 
-			{/* SIDEBAR NAVIGATION (Adopts Column 3 visual style) */}
-			<aside className="w-full md:w-72 shrink-0 border-b md:border-b-0 md:border-r border-slate-950/10 flex flex-col justify-between p-6 overflow-y-auto bg-[#FAF9F5]">
-				{/* Sidebar Top: Logo & Main Actions */}
+			{/* MOBILE SIDEBAR BACKDROP */}
+			{isSidebarOpen && (
+				<div
+					className="fixed inset-0 bg-black/30 z-40 md:hidden"
+					onClick={() => setIsSidebarOpen(false)}
+					onKeyDown={(e) => {
+						if (e.key === "Escape") setIsSidebarOpen(false);
+					}}
+					aria-hidden="true"
+				/>
+			)}
+
+			{/* SIDEBAR */}
+			<aside
+				className={`fixed inset-y-0 left-0 z-50 w-72 bg-[#FAF9F5] border-r border-slate-950/10 flex flex-col justify-between p-6 overflow-y-auto transition-transform duration-200 ease-out md:static md:translate-x-0 ${
+					isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+				}`}
+			>
+				{/* Sidebar Top: Logo & Nav */}
 				<div className="space-y-6">
-					<div className="border-b border-slate-900/10 pb-4">
-						<span className="text-[10px] font-sans font-semibold tracking-wider text-slate-400 block uppercase">
-							PORTAL REGIONAL
-						</span>
-						<h1 className="text-xl font-light font-display text-slate-900 uppercase tracking-wider leading-none mt-1">
-							BIAP{" "}
-							<span className="text-slate-400 text-xs font-sans tracking-normal">
-								/ INTRANET
+					<div className="border-b border-slate-900/10 pb-4 flex items-start justify-between">
+						<div>
+							<span className="text-[10px] font-sans font-semibold tracking-wider text-slate-500 block uppercase">
+								PORTAL REGIONAL
 							</span>
-						</h1>
+							<h1 className="text-xl font-light font-display text-slate-900 uppercase tracking-wider leading-none mt-1">
+								BIAP{" "}
+								<span className="text-slate-500 text-xs font-sans tracking-normal">
+									/ INTRANET
+								</span>
+							</h1>
+						</div>
+						<button
+							type="button"
+							onClick={() => setIsSidebarOpen(false)}
+							aria-label="Fechar menu"
+							className="p-1 -mt-1 -mr-1 hover:bg-slate-100 transition cursor-pointer md:hidden"
+						>
+							<X className="w-4 h-4 text-slate-500" />
+						</button>
 					</div>
 
-					{/* Vertical Navigation Links */}
-					<nav className="space-y-1.5 pt-2">
-						<span className="text-[9px] font-sans font-bold tracking-wider text-slate-400 block uppercase mb-2">
-							MENU DE AÇÕES
-						</span>
-
-						{activeRole === "COMPRADOR" && (
-							<>
-								<button
-									type="button"
-									onClick={() => setActiveTab("vitrine")}
-									className={`w-full text-left px-3 py-2 text-xs font-sans font-medium border transition cursor-pointer ${
-										activeTab === "vitrine"
-											? "border-slate-950 bg-slate-950 text-white"
-											: "border-slate-950/10 bg-white hover:bg-slate-50 text-slate-600"
-									}`}
-								>
-									Vitrine (Catálogo)
-								</button>
-								<button
-									type="button"
-									onClick={() => setActiveTab("carrinho")}
-									className={`w-full text-left px-3 py-2 text-xs font-sans font-medium border transition flex items-center justify-between cursor-pointer ${
-										activeTab === "carrinho"
-											? "border-slate-950 bg-slate-950 text-white"
-											: "border-slate-950/10 bg-white hover:bg-slate-50 text-slate-600"
-									}`}
-								>
-									<span>Carrinho</span>
-									<span
-										className={`px-1.5 py-0.5 text-[10px] font-sans font-bold rounded-sm ${
-											activeTab === "carrinho"
-												? "bg-white text-slate-950"
-												: "bg-slate-950 text-white"
-										}`}
-									>
-										{cart.reduce((acc, c) => acc + c.qty, 0)}
-									</span>
-								</button>
-								<button
-									type="button"
-									onClick={() => setActiveTab("pedidos")}
-									className={`w-full text-left px-3 py-2 text-xs font-sans font-medium border transition cursor-pointer ${
-										activeTab === "pedidos"
-											? "border-slate-950 bg-slate-950 text-white"
-											: "border-slate-950/10 bg-white hover:bg-slate-50 text-slate-600"
-									}`}
-								>
-									Meus Pedidos
-								</button>
-							</>
-						)}
-
-						{activeRole === "ADMIN_GERENCIADOR" && (
-							<>
-								<button
-									type="button"
-									onClick={() => setActiveTab("autorizacoes")}
-									className={`w-full text-left px-3 py-2 text-xs font-sans font-medium border transition cursor-pointer ${
-										activeTab === "autorizacoes"
-											? "border-slate-950 bg-slate-950 text-white"
-											: "border-slate-950/10 bg-white hover:bg-slate-50 text-slate-600"
-									}`}
-								>
-									Autorizações Pendentes
-								</button>
-								<button
-									type="button"
-									onClick={() => setActiveTab("cadastro")}
-									className={`w-full text-left px-3 py-2 text-xs font-sans font-medium border transition cursor-pointer ${
-										activeTab === "cadastro"
-											? "border-slate-950 bg-slate-950 text-white"
-											: "border-slate-950/10 bg-white hover:bg-slate-50 text-slate-600"
-									}`}
-								>
-									Cadastro / Upload ATA
-								</button>
-								<button
-									type="button"
-									onClick={() => setActiveTab("monitoramento")}
-									className={`w-full text-left px-3 py-2 text-xs font-sans font-medium border transition cursor-pointer ${
-										activeTab === "monitoramento"
-											? "border-slate-950 bg-slate-950 text-white"
-											: "border-slate-950/10 bg-white hover:bg-slate-50 text-slate-600"
-									}`}
-								>
-									Monitoramento Geral
-								</button>
-							</>
-						)}
-
-						{activeRole === "FORNECEDOR" && (
-							<>
-								<button
-									type="button"
-									onClick={() => setActiveTab("saldos")}
-									className={`w-full text-left px-3 py-2 text-xs font-sans font-medium border transition cursor-pointer ${
-										activeTab === "saldos"
-											? "border-slate-950 bg-slate-950 text-white"
-											: "border-slate-950/10 bg-white hover:bg-slate-50 text-slate-600"
-									}`}
-								>
-									Central de Saldos
-								</button>
-								<button
-									type="button"
-									onClick={() => setActiveTab("vendas")}
-									className={`w-full text-left px-3 py-2 text-xs font-sans font-medium border transition cursor-pointer ${
-										activeTab === "vendas"
-											? "border-slate-950 bg-slate-950 text-white"
-											: "border-slate-950/10 bg-white hover:bg-slate-50 text-slate-600"
-									}`}
-								>
-									Notificações de Vendas
-								</button>
-							</>
-						)}
+					{/* Navigation */}
+					<nav>
+						<ul className="space-y-1.5" role="list">
+							{navItems.map((item) => (
+								<li key={item.tabId}>
+									<NavItem
+										icon={item.icon}
+										label={item.label}
+										tabId={item.tabId}
+										activeTab={activeTab}
+										onClick={handleTabClick}
+										badge={item.tabId === "carrinho" ? cartCount : undefined}
+									/>
+								</li>
+							))}
+						</ul>
 					</nav>
 				</div>
 
-				{/* Sidebar Bottom: Session Card & Clock */}
+				{/* Sidebar Bottom: Profile */}
 				<div className="space-y-4 pt-6 border-t border-slate-900/10 mt-6 shrink-0">
-					{/* Profile Button with Avatar & Popover Dropdown */}
 					<div className="relative" ref={profileMenuRef}>
 						{isProfileMenuOpen && (
 							<div
@@ -285,8 +339,8 @@ export default function DashboardPage({ user, onLogout }: DashboardPageProps) {
 								role="menu"
 								className="absolute bottom-full mb-2 left-0 right-0 bg-[#FAF9F5] border border-slate-950/15 shadow-xl p-4 font-sans text-xs z-50 animate-popover-in space-y-3 origin-bottom"
 							>
-								<span className="text-[8px] font-sans font-bold tracking-wider text-slate-400 block mb-2 border-b border-slate-950/10 pb-1">
-									§ SESSÃO DO USUÁRIO
+								<span className="text-[8px] font-sans font-bold tracking-wider text-slate-500 block mb-2 border-b border-slate-950/10 pb-1">
+									SESSÃO DO USUÁRIO
 								</span>
 								<div className="space-y-3">
 									<div>
@@ -306,54 +360,43 @@ export default function DashboardPage({ user, onLogout }: DashboardPageProps) {
 												Perfil de Atuação:
 											</span>
 											<div className="space-y-1" role="none">
-												<button
-													type="button"
-													role="menuitem"
-													onClick={() => {
-														setActiveRole("COMPRADOR");
-														setIsProfileMenuOpen(false);
-													}}
-													className={`w-full text-left px-2.5 py-1.5 text-xs font-sans font-medium border transition flex items-center gap-2 cursor-pointer focus:outline-none focus-visible:ring-1 focus-visible:ring-slate-950 ${
-														activeRole === "COMPRADOR"
-															? "border-slate-950 bg-slate-950 text-white"
-															: "border-slate-950/10 bg-white hover:bg-slate-50 text-slate-600"
-													}`}
-												>
-													<span className="text-xs">🛍️</span>
-													<span>Órgão Comprador</span>
-												</button>
-												<button
-													type="button"
-													role="menuitem"
-													onClick={() => {
-														setActiveRole("ADMIN_GERENCIADOR");
-														setIsProfileMenuOpen(false);
-													}}
-													className={`w-full text-left px-2.5 py-1.5 text-xs font-sans font-medium border transition flex items-center gap-2 cursor-pointer focus:outline-none focus-visible:ring-1 focus-visible:ring-slate-950 ${
-														activeRole === "ADMIN_GERENCIADOR"
-															? "border-slate-950 bg-slate-950 text-white"
-															: "border-slate-950/10 bg-white hover:bg-slate-50 text-slate-600"
-													}`}
-												>
-													<span className="text-xs">🏛️</span>
-													<span>Órgão Gerenciador</span>
-												</button>
-												<button
-													type="button"
-													role="menuitem"
-													onClick={() => {
-														setActiveRole("FORNECEDOR");
-														setIsProfileMenuOpen(false);
-													}}
-													className={`w-full text-left px-2.5 py-1.5 text-xs font-sans font-medium border transition flex items-center gap-2 cursor-pointer focus:outline-none focus-visible:ring-1 focus-visible:ring-slate-950 ${
-														activeRole === "FORNECEDOR"
-															? "border-slate-950 bg-slate-950 text-white"
-															: "border-slate-950/10 bg-white hover:bg-slate-50 text-slate-600"
-													}`}
-												>
-													<span className="text-xs">🚚</span>
-													<span>Fornecedor Licitante</span>
-												</button>
+												{(
+													[
+														{
+															role: "COMPRADOR",
+															icon: ShoppingCart,
+															label: "Órgão Comprador",
+														},
+														{
+															role: "ADMIN_GERENCIADOR",
+															icon: CheckCircle,
+															label: "Órgão Gerenciador",
+														},
+														{
+															role: "FORNECEDOR",
+															icon: Banknote,
+															label: "Fornecedor Licitante",
+														},
+													] as const
+												).map((item) => (
+													<button
+														key={item.role}
+														type="button"
+														role="menuitem"
+														onClick={() => {
+															setActiveRole(item.role);
+															setIsProfileMenuOpen(false);
+														}}
+														className={`w-full text-left px-2.5 py-1.5 text-xs font-sans font-medium border transition flex items-center gap-2 cursor-pointer focus:outline-none focus-visible:ring-1 focus-visible:ring-slate-950 ${
+															activeRole === item.role
+																? "border-slate-950 bg-slate-950 text-white"
+																: "border-slate-950/10 bg-white hover:bg-slate-50 text-slate-600"
+														}`}
+													>
+														<item.icon className="w-3.5 h-3.5 shrink-0" />
+														<span>{item.label}</span>
+													</button>
+												))}
 											</div>
 										</div>
 									)}
@@ -393,24 +436,23 @@ export default function DashboardPage({ user, onLogout }: DashboardPageProps) {
 										{user.email.split("@")[0]}
 									</span>
 									<span className="text-[10px] font-sans text-slate-500 block mt-0.5">
-										{activeRole === "COMPRADOR" && "🛍️ Comprador"}
-										{activeRole === "ADMIN_GERENCIADOR" && "🏛️ Gerenciador"}
-										{activeRole === "FORNECEDOR" && "🚚 Fornecedor"}
+										{activeRole === "COMPRADOR" && "Comprador"}
+										{activeRole === "ADMIN_GERENCIADOR" && "Gerenciador"}
+										{activeRole === "FORNECEDOR" && "Fornecedor"}
 									</span>
 								</div>
 							</div>
 							<ChevronDown
-								className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${isProfileMenuOpen ? "rotate-180" : ""}`}
+								className={`w-3.5 h-3.5 text-slate-500 transition-transform duration-200 ${isProfileMenuOpen ? "rotate-180" : ""}`}
 							/>
 						</button>
 					</div>
 				</div>
 			</aside>
 
-			{/* MAIN CONTENT SHEET */}
+			{/* MAIN CONTENT */}
 			<div className="flex-grow flex flex-col h-full md:h-screen overflow-hidden">
 				<main className="flex-grow p-4 sm:p-6 md:p-8 lg:p-10 overflow-y-auto max-w-7xl w-full mx-auto pb-12">
-					{/* Elevated Paper Sheet representing the legal dossier/docket */}
 					<div className="bg-[#FAF9F5] border border-slate-950/15 p-6 md:p-10 min-h-[calc(100vh-6rem)] shadow-[0_4px_25px_rgba(0,0,0,0.015)] relative animate-fade-in">
 						{/* Official Watermark Seal */}
 						<div className="absolute top-6 right-6 pointer-events-none opacity-[0.03] select-none hidden md:block">
@@ -443,7 +485,7 @@ export default function DashboardPage({ user, onLogout }: DashboardPageProps) {
 							</svg>
 						</div>
 
-						{/* Active tab content rendering */}
+						{/* Active tab content */}
 						{activeRole === "COMPRADOR" && (
 							<>
 								{activeTab === "vitrine" && (
@@ -482,40 +524,6 @@ export default function DashboardPage({ user, onLogout }: DashboardPageProps) {
 					</div>
 				</main>
 			</div>
-
-			<style>{`
-				@keyframes fadeIn {
-					0% {
-						opacity: 0;
-						transform: translateY(8px);
-					}
-					100% {
-						opacity: 1;
-						transform: translateY(0);
-					}
-				}
-				.animate-fade-in {
-					animation: fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-				}
-				@keyframes popoverIn {
-					0% {
-						opacity: 0;
-						transform: translateY(4px) scale(0.98);
-					}
-					100% {
-						opacity: 1;
-						transform: translateY(0) scale(1);
-					}
-				}
-				.animate-popover-in {
-					animation: popoverIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-				}
-				.vertical-text {
-					writing-mode: vertical-rl;
-					text-orientation: mixed;
-					transform: rotate(180deg);
-				}
-			`}</style>
 		</div>
 	);
 }

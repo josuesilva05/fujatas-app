@@ -3,7 +3,7 @@ export default function BuyerOrders() {
 		<div className="space-y-6 animate-fade-in">
 			{/* Editorial Section Title */}
 			<div className="border-b border-slate-955/10 pb-4">
-				<span className="text-[10px] font-sans font-bold tracking-wider text-slate-400 block uppercase">
+				<span className="text-[10px] font-sans font-bold tracking-wider text-slate-500 block uppercase">
 					MÓDULO ÓRGÃO COMPRADOR • DOCKET DE PEDIDOS
 				</span>
 				<h2 className="text-2xl font-light font-display text-slate-955 uppercase tracking-wide">
@@ -31,7 +31,7 @@ export default function BuyerOrders() {
 				</div>
 
 				<div className="lg:col-span-4 bg-[#FAF9F5] border border-slate-955/10 p-5 space-y-5">
-					<span className="text-[10px] font-sans font-bold tracking-wider text-slate-400 block border-b border-slate-955/10 pb-2">
+					<span className="text-[10px] font-sans font-bold tracking-wider text-slate-500 block border-b border-slate-955/10 pb-2">
 						§ STATUS DO TRÂMITE (MOCKUP)
 					</span>
 

@@ -31,7 +31,7 @@ export default function BuyerCart({
 		<div className="space-y-6 animate-fade-in">
 			{/* Editorial Section Title */}
 			<div className="border-b border-slate-955/10 pb-4">
-				<span className="text-[10px] font-sans font-bold tracking-wider text-slate-400 block uppercase">
+				<span className="text-[10px] font-sans font-bold tracking-wider text-slate-500 block uppercase">
 					MÓDULO ÓRGÃO COMPRADOR • CONCORRÊNCIA E ADESÃO
 				</span>
 				<h2 className="text-2xl font-light font-display text-slate-955 uppercase tracking-wide">
@@ -58,7 +58,7 @@ export default function BuyerCart({
 				</div>
 
 				<div className="lg:col-span-4 bg-[#FAF9F5] border border-slate-955/10 p-5 space-y-5">
-					<span className="text-[10px] font-sans font-bold tracking-wider text-slate-400 block border-b border-slate-955/10 pb-2">
+					<span className="text-[10px] font-sans font-bold tracking-wider text-slate-500 block border-b border-slate-955/10 pb-2">
 						§ ÁREA DE CHECKOUT (MOCKUP)
 					</span>
 
@@ -77,7 +77,7 @@ export default function BuyerCart({
 								<span className="font-bold text-slate-955">--</span>
 							</div>
 						</div>
-						<div className="h-9 bg-slate-950/5 w-full flex items-center justify-center font-bold text-[10px] uppercase tracking-wider text-slate-400 border border-slate-950/10 border-dashed font-sans">
+						<div className="h-9 bg-slate-950/5 w-full flex items-center justify-center font-bold text-[10px] uppercase tracking-wider text-slate-500 border border-slate-950/10 border-dashed font-sans">
 							[Checkout Desabilitado]
 						</div>
 					</div>

@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap");
 
 @import "tailwindcss";
 
@@ -19,6 +19,12 @@
 	--color-biap-border: #e2e8f0;
 
 	--color-slate-955: #020617;
+
+	--color-slate-350: #b0bccd;
+	--color-slate-450: #7e8a9e;
+	--color-slate-550: #536178;
+	--color-slate-650: #3a4a60;
+	--color-slate-850: #162033;
 
 	--font-display: "Outfit", "Inter", sans-serif;
 	--font-sans: "Inter", sans-serif;
@@ -149,6 +155,50 @@
 	--sidebar-accent-foreground: oklch(0.985 0 0);
 	--sidebar-border: oklch(1 0 0 / 10%);
 	--sidebar-ring: oklch(0.556 0 0);
+}
+
+@keyframes fadeIn {
+	0% {
+		opacity: 0;
+		transform: translateY(8px);
+	}
+	100% {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+@keyframes popoverIn {
+	0% {
+		opacity: 0;
+		transform: translateY(4px) scale(0.98);
+	}
+	100% {
+		opacity: 1;
+		transform: translateY(0) scale(1);
+	}
+}
+
+.animate-fade-in {
+	animation: fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-popover-in {
+	animation: popoverIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.bg-radial-bleed {
+	background: radial-gradient(
+		circle,
+		transparent 40%,
+		rgba(247, 246, 242, 0.98) 78%
+	);
+}
+
+.vertical-text {
+	writing-mode: vertical-rl;
+	text-orientation: mixed;
+	transform: rotate(180deg);
 }
 
 @layer base {
