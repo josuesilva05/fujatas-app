@@ -11,11 +11,14 @@ import {
 	Plus,
 	Trash2,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Button from "@/components/ui/Button";
 import { createAta } from "@/services/atas";
-import { listOrgans, type Organ } from "@/services/organs";
-import { listSuppliers, type Supplier } from "@/services/suppliers";
+import { listOrgans } from "@/services/organs";
+import { listSuppliers } from "@/services/suppliers";
+import type { Organ } from "@/types/organ";
+import type { Supplier } from "@/types/supplier";
+import ManagerTabs from "./ManagerTabs";
 
 interface UserSession {
 	id: string;
@@ -118,7 +121,11 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 	const [loadingData, setLoadingData] = useState(true);
 	const [submitting, setSubmitting] = useState(false);
 	const [errorMsg, setErrorMsg] = useState("");
-	const [successData, setSuccessData] = useState<any>(null);
+	const [successData, setSuccessData] = useState<{
+		id: string;
+		numero_ata: string;
+		valor_total_global?: number;
+	} | null>(null);
 
 	useEffect(() => {
 		Promise.all([listOrgans(), listSuppliers()])
@@ -140,7 +147,7 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 
 	/* ── Helpers de cálculo ──────────────────────────────── */
 
-	const getItemQty = (item: ItemForm): number => {
+	const getItemQty = useCallback((item: ItemForm): number => {
 		if (item.participantes.length > 0) {
 			return item.participantes.reduce(
 				(s, p) => s + (Number(p.quantidade_planejada) || 0),
@@ -148,14 +155,14 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 			);
 		}
 		return Number(item.quantidade_manual) || 0;
-	};
+	}, []);
 
 	const valorTotalGlobal = useMemo(
 		() =>
 			itens.reduce((sum, item) => {
 				return sum + Number(item.valor_unitario || 0) * getItemQty(item);
 			}, 0),
-		[itens],
+		[itens, getItemQty],
 	);
 
 	/* ── Handlers de Grupo ───────────────────────────────── */
@@ -208,14 +215,17 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 		setItens(itens.filter((_, i) => i !== idx));
 	};
 
-	const handleItemChange = (idx: number, field: string, value: any) => {
-		const u = [...itens] as any;
-		if (field === "valor_unitario") {
-			u[idx][field] = Number(value);
-		} else if (field === "quantidade_manual") {
-			u[idx][field] = value === "" ? "" : Number(value);
+	const handleItemChange = (
+		idx: number,
+		field: string,
+		value: string | number,
+	) => {
+		const u = [...itens] as ItemForm[];
+		const item = u[idx] as unknown as Record<string, string | number | "">;
+		if (field === "valor_unitario" || field === "quantidade_manual") {
+			item[field] = value === "" ? "" : Number(value);
 		} else {
-			u[idx][field] = value;
+			item[field] = value;
 		}
 		setItens(u);
 	};
@@ -247,18 +257,19 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 		itemIdx: number,
 		partIdx: number,
 		field: keyof Participante,
-		value: any,
+		value: string | number | "",
 	) => {
 		const u = [...itens];
 		const parts = [...u[itemIdx].participantes];
-		if (field === "quantidade_planejada") {
-			parts[partIdx] = {
-				...parts[partIdx],
-				[field]: value === "" ? "" : Number(value),
-			};
-		} else {
-			parts[partIdx] = { ...parts[partIdx], [field]: value };
-		}
+		parts[partIdx] = {
+			...parts[partIdx],
+			[field]:
+				field === "quantidade_planejada"
+					? value === ""
+						? ""
+						: Number(value)
+					: value,
+		} as unknown as Participante;
 		u[itemIdx] = { ...u[itemIdx], participantes: parts };
 		setItens(u);
 	};
@@ -277,14 +288,13 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 	const handleRegraChange = (
 		idx: number,
 		field: keyof RegraForm,
-		value: any,
+		value: string | number,
 	) => {
 		const u = [...regras];
-		if (field === "percentual_maximo_do_saldo") {
-			u[idx] = { ...u[idx], [field]: Number(value) };
-		} else {
-			u[idx] = { ...u[idx], [field]: value };
-		}
+		u[idx] = {
+			...u[idx],
+			[field]: field === "percentual_maximo_do_saldo" ? Number(value) : value,
+		} as unknown as RegraForm;
 		setRegras(u);
 	};
 
@@ -397,10 +407,13 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 			const res = await createAta(payload);
 			setSuccessData(res);
 			setSubmitting(false);
-		} catch (err: any) {
+		} catch (err: unknown) {
 			console.error(err);
+			const axiosErr = err as {
+				response?: { data?: { detail?: string } };
+			};
 			const detail =
-				err.response?.data?.detail ||
+				axiosErr.response?.data?.detail ||
 				"Erro interno do servidor ao cadastrar ATA.";
 			setErrorMsg(typeof detail === "string" ? detail : JSON.stringify(detail));
 			setSubmitting(false);
@@ -1055,7 +1068,6 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 											<div className="col-span-2" />
 										</div>
 
-										{/* Linhas dos participantes */}
 										{item.participantes.map((part, pIdx) => (
 											<div
 												key={pIdx}
@@ -1377,64 +1389,71 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 
 	/* ── Render Principal ────────────────────────────────── */
 	return (
-		<div className="space-y-6 animate-fade-in font-sans">
-			{/* Header */}
-			<div className="border-b border-slate-955/10 pb-4">
-				<span className="text-[10px] font-sans font-bold tracking-wider text-slate-500 block uppercase">
-					MÓDULO ÓRGÃO GERENCIADOR • AUTUAÇÃO PÚBLICA
-				</span>
-				<h2 className="text-2xl font-light font-display text-slate-955 uppercase tracking-wide">
-					Cadastro de ATA de Registro de Preços
-				</h2>
-			</div>
-
-			{/* Error */}
-			{errorMsg && (
-				<div className="p-4 border border-red-900/20 bg-red-50/50 text-red-950 text-xs flex gap-3 rounded-none items-start">
-					<Info className="w-4 h-4 shrink-0 text-red-800 mt-0.5" />
-					<div className="space-y-1">
-						<span className="font-bold uppercase text-[9px] tracking-wider block">
-							Erro na Autuação
-						</span>
-						<p className="font-light">{errorMsg}</p>
+		<div className="animate-fade-in font-sans">
+			<div className="p-6 md:p-8 space-y-6">
+				{/* Header */}
+				<div>
+					<div className="flex items-start justify-between pb-4">
+						<div>
+							<span className="text-[10px] font-sans font-bold tracking-wider text-slate-500 block uppercase">
+								MÓDULO ÓRGÃO GERENCIADOR • CADASTRO DE ATA
+							</span>
+							<h2 className="text-2xl font-light font-display text-slate-955 uppercase tracking-wide">
+								Cadastro de ATA de Registro de Preços
+							</h2>
+						</div>
 					</div>
+					<ManagerTabs activeTab="cadastro" />
 				</div>
-			)}
 
-			{/* Step Indicator */}
-			{renderStepIndicator()}
+				{/* Error */}
+				{errorMsg && (
+					<div className="p-4 border border-red-900/20 bg-red-50/50 text-red-950 text-xs flex gap-3 rounded-none items-start">
+						<Info className="w-4 h-4 shrink-0 text-red-800 mt-0.5" />
+						<div className="space-y-1">
+							<span className="font-bold uppercase text-[9px] tracking-wider block">
+								Erro na Autuação
+							</span>
+							<p className="font-light">{errorMsg}</p>
+						</div>
+					</div>
+				)}
 
-			{/* Step Content */}
-			{currentStep === 1 && renderStep1()}
-			{currentStep === 2 && renderStep2()}
-			{currentStep === 3 && renderStep3()}
-			{currentStep === 4 && renderStep4()}
+				{/* Step Indicator */}
+				{renderStepIndicator()}
 
-			{/* Navigation */}
-			<div className="flex justify-between items-center pt-2">
-				<div>
-					{currentStep > 1 && (
-						<Button
-							type="button"
-							onClick={goPrev}
-							className="h-10 px-5 bg-white hover:bg-slate-50 text-slate-800 cursor-pointer uppercase tracking-wider text-xs font-bold font-sans rounded-none inline-flex items-center gap-2 border border-slate-300 transition-colors"
-						>
-							<ArrowLeft className="w-4 h-4" />
-							<span>Anterior</span>
-						</Button>
-					)}
-				</div>
-				<div>
-					{currentStep < 4 && (
-						<Button
-							type="button"
-							onClick={goNext}
-							className="h-10 px-5 bg-blue-600 hover:bg-blue-700 text-white cursor-pointer uppercase tracking-wider text-xs font-bold font-sans rounded-none inline-flex items-center gap-2 border border-blue-600 shadow-sm transition-all"
-						>
-							<span>Próximo</span>
-							<ArrowRight className="w-4 h-4" />
-						</Button>
-					)}
+				{/* Step Content */}
+				{currentStep === 1 && renderStep1()}
+				{currentStep === 2 && renderStep2()}
+				{currentStep === 3 && renderStep3()}
+				{currentStep === 4 && renderStep4()}
+
+				{/* Navigation */}
+				<div className="flex justify-between items-center pt-2">
+					<div>
+						{currentStep > 1 && (
+							<Button
+								type="button"
+								onClick={goPrev}
+								className="h-10 px-5 bg-white hover:bg-slate-50 text-slate-800 cursor-pointer uppercase tracking-wider text-xs font-bold font-sans rounded-none inline-flex items-center gap-2 border border-slate-300 transition-colors"
+							>
+								<ArrowLeft className="w-4 h-4" />
+								<span>Anterior</span>
+							</Button>
+						)}
+					</div>
+					<div>
+						{currentStep < 4 && (
+							<Button
+								type="button"
+								onClick={goNext}
+								className="h-10 px-5 bg-blue-600 hover:bg-blue-700 text-white cursor-pointer uppercase tracking-wider text-xs font-bold font-sans rounded-none inline-flex items-center gap-2 border border-blue-600 shadow-sm transition-all"
+							>
+								<span>Próximo</span>
+								<ArrowRight className="w-4 h-4" />
+							</Button>
+						)}
+					</div>
 				</div>
 			</div>
 		</div>
