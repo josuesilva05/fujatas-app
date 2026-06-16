@@ -471,7 +471,7 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 					</p>
 				</div>
 
-				<div className="border border-slate-100 bg-[#FAF9F5] p-5 text-left text-xs max-w-md mx-auto space-y-3">
+				<div className="border border-slate-100 bg-[#F8FAFE] p-5 text-left text-xs max-w-md mx-auto space-y-3">
 					<div className="flex justify-between border-b border-dashed border-slate-200 pb-2">
 						<span className="text-slate-500 font-bold uppercase text-[9px] tracking-wider">
 							Identificador (ID)
@@ -514,7 +514,7 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 
 	/* ── Input class helper ──────────────────────────────── */
 	const inputCls =
-		"w-full bg-[#FAF9F5]/30 border border-slate-955/15 px-3 py-2 text-xs font-sans text-slate-900 focus:border-slate-950 focus:bg-white outline-none transition-colors";
+		"w-full bg-[#F8FAFE]/30 border border-slate-955/15 px-3 py-2 text-xs font-sans text-slate-900 focus:border-slate-950 focus:bg-white outline-none transition-colors";
 	const selectCls =
 		"w-full bg-white border border-slate-955/15 px-2 py-2 text-xs font-sans text-slate-900 focus:border-slate-950 outline-none transition-colors";
 	const labelCls =
@@ -546,7 +546,7 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 							<div
 								className={`w-9 h-9 flex items-center justify-center border-2 shrink-0 transition-all ${
 									isActive
-										? "bg-slate-950 border-slate-950 text-white shadow-lg shadow-slate-950/20"
+										? "bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-600/20"
 										: isDone
 											? "bg-slate-800 border-slate-800 text-white"
 											: "bg-white border-slate-300 text-slate-500"
@@ -688,7 +688,7 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 			</div>
 
 			{/* Card do Órgão */}
-			<div className="lg:col-span-4 bg-[#FAF9F5] border border-slate-955/10 p-6 space-y-6">
+			<div className="lg:col-span-4 bg-[#F8FAFE] border border-slate-955/10 p-6 space-y-6">
 				<span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block border-b border-slate-900/10 pb-2">
 					§ ÓRGÃO GERENCIADOR RESPONSÁVEL
 				</span>
@@ -838,7 +838,7 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 					return (
 						<div
 							key={idx}
-							className="border border-slate-200 bg-[#FAF9F5]/10 p-5 relative space-y-4"
+							className="border border-slate-200 bg-[#F8FAFE]/10 p-5 relative space-y-4"
 						>
 							{/* Header do Item */}
 							<div className="flex items-center justify-between">
@@ -1341,7 +1341,7 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 			</div>
 
 			{/* Barra de envio */}
-			<div className="bg-[#FAF9F5] border border-slate-955/10 p-6 flex flex-col md:flex-row justify-between items-center gap-6">
+			<div className="bg-[#F8FAFE] border border-slate-955/10 p-6 flex flex-col md:flex-row justify-between items-center gap-6">
 				<div className="text-center md:text-left space-y-1">
 					<span className="text-[10px] font-sans font-bold text-slate-500 uppercase tracking-wider block">
 						VALOR TOTAL GLOBAL ESTIMADO
@@ -1429,7 +1429,7 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 						<Button
 							type="button"
 							onClick={goNext}
-							className="h-10 px-5 bg-slate-950 hover:bg-slate-900 text-white cursor-pointer uppercase tracking-wider text-xs font-bold font-sans rounded-none inline-flex items-center gap-2 border border-slate-950 shadow-sm transition-all"
+							className="h-10 px-5 bg-blue-600 hover:bg-blue-700 text-white cursor-pointer uppercase tracking-wider text-xs font-bold font-sans rounded-none inline-flex items-center gap-2 border border-blue-600 shadow-sm transition-all"
 						>
 							<span>Próximo</span>
 							<ArrowRight className="w-4 h-4" />

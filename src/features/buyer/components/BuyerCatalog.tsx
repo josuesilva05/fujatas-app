@@ -1,6 +1,7 @@
 import {
   ChevronLeft,
   ChevronRight,
+  ClipboardList,
   Grid3X3,
   List,
   Package,
@@ -78,6 +79,9 @@ interface BuyerCatalogProps {
   onAddToCart?: (payload: AddToCartPayload) => void;
   orgaoCompradorId?: string;
   cartItemIds?: Set<string>;
+  cartCount?: number;
+  onNavigateCart?: () => void;
+  onNavigateOrders?: () => void;
 }
 
 /* ─── Skeleton Card ─── */
@@ -447,6 +451,9 @@ export default function BuyerCatalog({
   onAddToCart,
   orgaoCompradorId,
   cartItemIds,
+  cartCount = 0,
+  onNavigateCart,
+  onNavigateOrders,
 }: BuyerCatalogProps) {
   const [items, setItems] = useState<ItemSearchResponse[]>([]);
   const [loading, setLoading] = useState(true);
@@ -624,12 +631,45 @@ export default function BuyerCatalog({
       <div className="p-6 md:p-8 space-y-6">
         {/* ── Editorial Header ── */}
         <div className="border-b border-slate-955/10 pb-4">
-          <span className="text-[10px] font-sans font-bold tracking-wider text-slate-500 block uppercase">
-            MÓDULO ÓRGÃO COMPRADOR • VITRINE DE ITENS
-          </span>
-          <h2 className="text-2xl font-light font-display text-slate-955 uppercase tracking-wide">
-            Catálogo de Itens
-          </h2>
+          <div className="flex items-start justify-between">
+            <div>
+              <h2 className="text-2xl font-light font-display text-slate-955 uppercase tracking-wide">
+                Catálogo de Itens
+              </h2>
+              <p className="text-xs text-slate-500 font-sans mt-2">
+                Visualize e pesquise itens disponíveis para adesão. Adicione ao
+                carrinho os itens de seu interesse para realizar uma
+                solicitação.
+              </p>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              {onNavigateCart && (
+                <button
+                  type="button"
+                  onClick={onNavigateCart}
+                  className="border border-slate-950/8 px-3 py-1.5 text-xs font-sans font-medium text-slate-600 hover:text-blue-600 hover:border-blue-600 transition cursor-pointer flex items-center gap-1.5 rounded-none"
+                >
+                  <ShoppingCart className="w-3.5 h-3.5" />
+                  <span>Carrinho</span>
+                  {cartCount > 0 && (
+                    <span className="w-4 h-4 flex items-center justify-center bg-blue-600 text-white text-[9px] font-bold">
+                      {cartCount > 9 ? "9+" : cartCount}
+                    </span>
+                  )}
+                </button>
+              )}
+              {onNavigateOrders && (
+                <button
+                  type="button"
+                  onClick={onNavigateOrders}
+                  className="border border-slate-950/8 px-3 py-1.5 text-xs font-sans font-medium text-slate-600 hover:text-blue-600 hover:border-blue-600 transition cursor-pointer flex items-center gap-1.5 rounded-none"
+                >
+                  <ClipboardList className="w-3.5 h-3.5" />
+                  <span>Meus Pedidos</span>
+                </button>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* ── Search & Filter Area ── */}

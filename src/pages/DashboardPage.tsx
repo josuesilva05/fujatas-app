@@ -14,6 +14,7 @@ import {
   X,
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import Toast, { type ToastType } from "@/components/ui/Toast";
 
 // Import modular layouts
@@ -27,6 +28,14 @@ import {
   SupplierBalances,
   SupplierSales,
 } from "@/features/dashboard";
+
+import {
+  roleToPath,
+  pathToRole,
+  pathToTab,
+  TAB_ROUTES,
+  ROLE_DEFAULTS,
+} from "@/lib/routes";
 
 interface UserSession {
   id: string;
@@ -106,7 +115,6 @@ const NAV_ITEMS: Record<
 > = {
   COMPRADOR: [
     { icon: Package, label: "Vitrine (Catálogo)", tabId: "vitrine" },
-    { icon: ShoppingCart, label: "Carrinho", tabId: "carrinho" },
     { icon: ClipboardList, label: "Meus Pedidos", tabId: "pedidos" },
   ],
   ADMIN_GERENCIADOR: [
@@ -125,10 +133,36 @@ const NAV_ITEMS: Record<
 };
 
 export default function DashboardPage({ user, onLogout }: DashboardPageProps) {
-  const [activeRole, setActiveRole] = useState<string>(user.papel);
-  const [activeTab, setActiveTab] = useState<string>("");
+  const { role: rolePath, tab: tabPath } = useParams();
+  const navigate = useNavigate();
+
+  const activeRole = pathToRole(rolePath ?? "");
+  const activeTab = tabPath
+    ? pathToTab(activeRole, tabPath)
+    : (ROLE_DEFAULTS[activeRole] ?? "");
+
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  // Redirect if URL doesn't match user role
+  useEffect(() => {
+    const expectedPath = roleToPath(user.papel);
+    if (rolePath !== expectedPath) {
+      navigate(`/${expectedPath}/${ROLE_DEFAULTS[user.papel] ?? "vitrine"}`, {
+        replace: true,
+      });
+    }
+  }, [user.papel, rolePath, navigate]);
+
+  // Redirect to default tab if current tab is invalid for the role
+  useEffect(() => {
+    const roleTabs = TAB_ROUTES[activeRole];
+    if (roleTabs && tabPath && !roleTabs[activeTab]) {
+      navigate(`/${roleToPath(activeRole)}/${ROLE_DEFAULTS[activeRole]}`, {
+        replace: true,
+      });
+    }
+  }, [activeRole, activeTab, tabPath, navigate]);
 
   const [cart, setCart] = useState<CartItem[]>(() => {
     try {
@@ -213,20 +247,17 @@ export default function DashboardPage({ user, onLogout }: DashboardPageProps) {
     };
   }, [isSidebarOpen]);
 
-  // Reset active tab on role change
-  useEffect(() => {
-    if (activeRole === "COMPRADOR") {
-      setActiveTab("vitrine");
-    } else if (activeRole === "ADMIN_GERENCIADOR") {
-      setActiveTab("autorizacoes");
-    } else if (activeRole === "FORNECEDOR") {
-      setActiveTab("saldos");
-    }
-  }, [activeRole]);
-
   const handleTabClick = (tabId: string) => {
-    setActiveTab(tabId);
+    navigate(`/${roleToPath(activeRole)}/${tabId}`, { replace: true });
     setIsSidebarOpen(false);
+  };
+
+  const navigateToTab = (tabId: string) => {
+    navigate(`/${roleToPath(activeRole)}/${tabId}`, { replace: true });
+  };
+
+  const navigateToRole = (role: string) => {
+    navigate(`/${roleToPath(role)}/${ROLE_DEFAULTS[role]}`, { replace: true });
   };
 
   // Cart Operations
@@ -299,207 +330,201 @@ export default function DashboardPage({ user, onLogout }: DashboardPageProps) {
 
   return (
     <div className="h-screen w-screen bg-[#F4F7FA] bg-pattern-document text-slate-900 flex flex-col relative font-sans overflow-hidden select-none">
-      {/* MOBILE HEADER */}
-      <header className="md:hidden flex items-center justify-between px-4 py-3 border-b border-blue-950/8 bg-[#EFF3F8] shrink-0 z-30">
-        <button
-          type="button"
-          onClick={() => setIsSidebarOpen(true)}
-          aria-label="Abrir menu"
-          className="p-2 -ml-2 hover:bg-slate-100 transition cursor-pointer"
-        >
-          <Menu className="w-5 h-5 text-slate-700" />
-        </button>
-        <h1 className="text-sm font-display font-light uppercase tracking-wider text-slate-900">
-          BIAP
-        </h1>
-        <div className="w-9" />
-      </header>
-
-      {/* MOBILE SIDEBAR BACKDROP */}
-      {isSidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black/30 z-40 md:hidden"
-          onClick={() => setIsSidebarOpen(false)}
-          onKeyDown={(e) => {
-            if (e.key === "Escape") setIsSidebarOpen(false);
-          }}
-          aria-hidden="true"
-        />
-      )}
-
-      {/* SIDEBAR — always fixed, never pushed by content */}
-      <aside
-        className={`fixed inset-y-0 left-0 z-50 w-72 bg-[#EFF3F8] border-r border-blue-950/8 flex flex-col justify-between p-6 overflow-y-auto transition-transform duration-200 ease-out md:translate-x-0 ${
-          isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
-      >
-        {/* Sidebar Top: Logo & Nav */}
-        <div className="space-y-6">
-          <div className="border-b border-slate-900/10 pb-4 flex items-start justify-between">
-            <div>
-              <span className="text-[10px] font-sans font-semibold tracking-wider text-slate-500 block uppercase">
+      {/* BRANDING HEADER */}
+      <header className="shrink-0 z-30 bg-[#EFF3F8] border-b border-blue-950/8">
+        <div className="flex items-center justify-between px-4 md:px-6 h-12">
+          {/* Left: Hamburger (mobile) + Logo */}
+          <div className="flex items-center gap-3 min-w-0">
+            <button
+              type="button"
+              onClick={() => setIsSidebarOpen(true)}
+              aria-label="Abrir menu"
+              className="p-2 -ml-2 hover:bg-slate-100 transition cursor-pointer md:hidden"
+            >
+              <Menu className="w-5 h-5 text-slate-700" />
+            </button>
+            <div className="min-w-0">
+              <span className="text-[10px] font-sans font-semibold tracking-wider text-slate-500 hidden sm:block uppercase leading-none">
                 PORTAL REGIONAL
               </span>
-              <h1 className="text-xl font-light font-display text-slate-900 uppercase tracking-wider leading-none mt-1">
-                BIAP{" "}
-                <span className="text-slate-500 text-xs font-sans tracking-normal">
-                  / INTRANET
+              <h1 className="text-lg md:text-xl font-light font-display text-slate-900 uppercase tracking-wider leading-none mt-0.5 truncate">
+                BIAP
+                <span className="text-slate-500 text-[10px] md:text-xs font-sans tracking-normal hidden sm:inline">
+                  &nbsp;/ INTRANET
                 </span>
               </h1>
             </div>
-            <button
-              type="button"
-              onClick={() => setIsSidebarOpen(false)}
-              aria-label="Fechar menu"
-              className="p-1 -mt-1 -mr-1 hover:bg-slate-100 transition cursor-pointer md:hidden"
-            >
-              <X className="w-4 h-4 text-slate-500" />
-            </button>
           </div>
 
-          {/* Navigation */}
-          <nav>
-            <ul className="space-y-1" role="list">
-              {navItems.map((item) => (
-                <li key={item.tabId}>
-                  <NavItem
-                    icon={item.icon}
-                    label={item.label}
-                    tabId={item.tabId}
-                    activeTab={activeTab}
-                    onClick={handleTabClick}
-                    badge={item.tabId === "carrinho" ? cartCount : undefined}
-                  />
-                </li>
-              ))}
-            </ul>
-          </nav>
-        </div>
-
-        {/* Sidebar Bottom: Profile */}
-        <div className="space-y-4 pt-6 border-t border-slate-900/10 mt-6 shrink-0">
-          <div className="relative" ref={profileMenuRef}>
-            {isProfileMenuOpen && (
-              <div
-                id="profile-menu-dropdown"
-                role="menu"
-                className="absolute bottom-full mb-2 left-0 right-0 bg-[#EFF3F8] border border-blue-950/10 shadow-xl p-4 font-sans text-xs z-50 animate-popover-in space-y-3 origin-bottom"
+          {/* Right: Profile */}
+          <div className="flex items-center gap-4">
+            <div className="relative flex-shrink-0" ref={profileMenuRef}>
+              <button
+                type="button"
+                onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+                aria-haspopup="menu"
+                aria-expanded={isProfileMenuOpen}
+                aria-controls={
+                  isProfileMenuOpen ? "profile-menu-dropdown" : undefined
+                }
+                className="flex items-center gap-2 p-1.5 -mr-1.5 hover:bg-slate-100 transition cursor-pointer"
               >
-                <span className="text-[8px] font-sans font-bold tracking-wider text-slate-500 block mb-2 border-b border-blue-950/8 pb-1">
-                  SESSÃO DO USUÁRIO
-                </span>
-                <div className="space-y-3">
-                  <div>
-                    <span className="text-slate-500 uppercase block font-bold text-[8px] tracking-wider mb-0.5">
-                      E-mail:
-                    </span>
-                    <span
-                      className="font-semibold text-slate-900 block truncate"
-                      title={user.email}
-                    >
-                      {user.email}
-                    </span>
-                  </div>
-                  {user.papel === "ADMIN_GERENCIADOR" && (
-                    <div className="border-t border-blue-950/8 pt-2.5">
-                      <span className="text-slate-500 uppercase block mb-1.5 font-bold text-[8px] tracking-wider">
-                        Perfil de Atuação:
-                      </span>
-                      <div className="space-y-1" role="none">
-                        {(
-                          [
-                            {
-                              role: "COMPRADOR",
-                              icon: ShoppingCart,
-                              label: "Órgão Comprador",
-                            },
-                            {
-                              role: "ADMIN_GERENCIADOR",
-                              icon: CheckCircle,
-                              label: "Órgão Gerenciador",
-                            },
-                            {
-                              role: "FORNECEDOR",
-                              icon: Banknote,
-                              label: "Fornecedor Licitante",
-                            },
-                          ] as const
-                        ).map((item) => (
-                          <button
-                            key={item.role}
-                            type="button"
-                            role="menuitem"
-                            onClick={() => {
-                              setActiveRole(item.role);
-                              setIsProfileMenuOpen(false);
-                            }}
-                            className={`w-full text-left px-2.5 py-1.5 text-xs font-sans font-medium border transition flex items-center gap-2 cursor-pointer focus:outline-none focus-visible:ring-1 focus-visible:ring-blue-600 ${
-                              activeRole === item.role
-                                ? "border-blue-600 bg-blue-600 text-white"
-                                : "border-blue-950/8 bg-white hover:bg-slate-50 text-slate-600"
-                            }`}
-                          >
-                            <item.icon className="w-3.5 h-3.5 shrink-0" />
-                            <span>{item.label}</span>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  <div className="border-t border-blue-950/8 pt-2.5">
-                    <button
-                      type="button"
-                      role="menuitem"
-                      onClick={onLogout}
-                      className="w-full flex items-center justify-between hover:bg-slate-950 hover:text-white border border-blue-950/8 hover:border-slate-950 transition font-medium text-xs cursor-pointer p-2 bg-white focus:outline-none focus-visible:ring-1 focus-visible:ring-blue-600"
-                    >
-                      <span className="flex items-center gap-1.5">
-                        <LogOut className="w-3.5 h-3.5" />
-                        <span>Encerrar Sessão</span>
-                      </span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            <button
-              type="button"
-              onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
-              aria-haspopup="menu"
-              aria-expanded={isProfileMenuOpen}
-              aria-controls={
-                isProfileMenuOpen ? "profile-menu-dropdown" : undefined
-              }
-              className="w-full flex items-center justify-between p-2.5 bg-white border border-blue-950/8 hover:border-slate-950/20 transition cursor-pointer text-left focus:outline-none focus-visible:ring-1 focus-visible:ring-blue-600"
-            >
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="w-8 h-8 shrink-0 bg-slate-950 text-white font-sans flex items-center justify-center font-bold text-xs border border-slate-950">
+                <div className="w-7 h-7 md:w-8 md:h-8 shrink-0 bg-slate-950 text-white font-sans flex items-center justify-center font-bold text-[10px] md:text-xs border border-slate-950">
                   {user.email.charAt(0).toUpperCase()}
                 </div>
-                <div className="min-w-0">
-                  <span className="text-xs font-sans font-bold text-slate-900 block truncate">
-                    {user.email.split("@")[0]}
+                <span className="hidden md:block text-xs font-sans font-medium text-slate-700 max-w-[120px] truncate">
+                  {user.email.split("@")[0]}
+                </span>
+                <ChevronDown
+                  className={`w-3 h-3 text-slate-500 transition-transform duration-200 hidden md:block ${isProfileMenuOpen ? "rotate-180" : ""}`}
+                />
+              </button>
+
+              {isProfileMenuOpen && (
+                <div
+                  id="profile-menu-dropdown"
+                  role="menu"
+                  className="absolute top-full right-0 mt-1 min-w-[240px] bg-[#EFF3F8] border border-blue-950/10 shadow-xl p-4 font-sans text-xs z-50 animate-popover-in space-y-3 origin-top-right"
+                >
+                  <span className="text-[8px] font-sans font-bold tracking-wider text-slate-500 block mb-2 border-b border-blue-950/8 pb-1 uppercase">
+                    SESSÃO DO USUÁRIO
                   </span>
-                  <span className="text-[10px] font-sans text-slate-500 block mt-0.5">
-                    {activeRole === "COMPRADOR" && "Comprador"}
-                    {activeRole === "ADMIN_GERENCIADOR" && "Gerenciador"}
-                    {activeRole === "FORNECEDOR" && "Fornecedor"}
-                  </span>
+                  <div className="space-y-3">
+                    <div>
+                      <span className="text-slate-500 uppercase block font-bold text-[8px] tracking-wider mb-0.5">
+                        E-mail:
+                      </span>
+                      <span
+                        className="font-semibold text-slate-900 block truncate"
+                        title={user.email}
+                      >
+                        {user.email}
+                      </span>
+                    </div>
+                    {user.papel === "ADMIN_GERENCIADOR" && (
+                      <div className="border-t border-blue-950/8 pt-2.5">
+                        <span className="text-slate-500 uppercase block mb-1.5 font-bold text-[8px] tracking-wider">
+                          Perfil de Atuação:
+                        </span>
+                        <div className="space-y-1" role="none">
+                          {(
+                            [
+                              {
+                                role: "COMPRADOR",
+                                icon: ShoppingCart,
+                                label: "Órgão Comprador",
+                              },
+                              {
+                                role: "ADMIN_GERENCIADOR",
+                                icon: CheckCircle,
+                                label: "Órgão Gerenciador",
+                              },
+                              {
+                                role: "FORNECEDOR",
+                                icon: Banknote,
+                                label: "Fornecedor Licitante",
+                              },
+                            ] as const
+                          ).map((item) => (
+                            <button
+                              key={item.role}
+                              type="button"
+                              role="menuitem"
+                              onClick={() => {
+                                navigateToRole(item.role);
+                                setIsProfileMenuOpen(false);
+                              }}
+                              className={`w-full text-left px-2.5 py-1.5 text-xs font-sans font-medium border transition flex items-center gap-2 cursor-pointer focus:outline-none focus-visible:ring-1 focus-visible:ring-blue-600 ${
+                                activeRole === item.role
+                                  ? "border-blue-600 bg-blue-600 text-white"
+                                  : "border-blue-950/8 bg-white hover:bg-slate-50 text-slate-600"
+                              }`}
+                            >
+                              <item.icon className="w-3.5 h-3.5 shrink-0" />
+                              <span>{item.label}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    <div className="border-t border-blue-950/8 pt-2.5">
+                      <button
+                        type="button"
+                        role="menuitem"
+                        onClick={onLogout}
+                        className="w-full flex items-center justify-between hover:bg-slate-950 hover:text-white border border-blue-950/8 hover:border-slate-950 transition font-medium text-xs cursor-pointer p-2 bg-white focus:outline-none focus-visible:ring-1 focus-visible:ring-blue-600"
+                      >
+                        <span className="flex items-center gap-1.5">
+                          <LogOut className="w-3.5 h-3.5" />
+                          <span>Encerrar Sessão</span>
+                        </span>
+                      </button>
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <ChevronDown
-                className={`w-3.5 h-3.5 text-slate-500 transition-transform duration-200 ${isProfileMenuOpen ? "rotate-180" : ""}`}
-              />
-            </button>
+              )}
+            </div>
           </div>
         </div>
-      </aside>
+      </header>
 
-      {/* MAIN CONTENT — offset on desktop for fixed sidebar */}
-      <div className="flex-1 flex flex-col overflow-hidden md:ml-72">
+      {/* MOBILE SIDEBAR OVERLAY */}
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 z-50 md:hidden"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Navegação"
+        >
+          <div
+            className="absolute inset-0 bg-black/30"
+            onClick={() => setIsSidebarOpen(false)}
+            aria-hidden="true"
+          />
+          <aside className="absolute inset-y-0 left-0 w-72 bg-[#EFF3F8] border-r border-blue-950/8 flex flex-col p-6 overflow-y-auto shadow-xl">
+            <div className="flex items-start justify-between mb-8">
+              <div>
+                <span className="text-[10px] font-sans font-semibold tracking-wider text-slate-500 block uppercase">
+                  PORTAL REGIONAL
+                </span>
+                <h1 className="text-xl font-light font-display text-slate-900 uppercase tracking-wider leading-none mt-1">
+                  BIAP
+                </h1>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsSidebarOpen(false)}
+                aria-label="Fechar menu"
+                className="p-1 -mt-1 -mr-1 hover:bg-slate-100 transition cursor-pointer"
+              >
+                <X className="w-4 h-4 text-slate-500" />
+              </button>
+            </div>
+
+            <nav>
+              <ul className="space-y-1" role="list">
+                {navItems.map((item) => (
+                  <li key={item.tabId}>
+                    <NavItem
+                      icon={item.icon}
+                      label={item.label}
+                      tabId={item.tabId}
+                      activeTab={activeTab}
+                      onClick={handleTabClick}
+                      badge={item.tabId === "carrinho" ? cartCount : undefined}
+                    />
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          </aside>
+        </div>
+      )}
+
+      {/* MAIN CONTENT — full bleed */}
+      <div className="flex-1 flex flex-col overflow-hidden">
         <main className="flex-1 overflow-y-auto">
-          <div className="bg-[#F8FAFE] border-r border-l border-blue-950/8 shadow-[0_4px_25px_rgba(0,0,0,0.015)] relative min-h-full animate-fade-in">
+          <div className="relative min-h-full animate-fade-in">
             {/* Official Watermark Seal */}
             <div className="absolute top-6 right-6 pointer-events-none opacity-[0.03] select-none hidden md:block">
               <svg className="w-20 h-20 text-slate-950" viewBox="0 0 100 100">
@@ -539,6 +564,9 @@ export default function DashboardPage({ user, onLogout }: DashboardPageProps) {
                     onAddToCart={handleAddToCart}
                     orgaoCompradorId={user.orgao_id || undefined}
                     cartItemIds={cartItemIds}
+                    cartCount={cartCount}
+                    onNavigateCart={() => navigateToTab("carrinho")}
+                    onNavigateOrders={() => navigateToTab("pedidos")}
                   />
                 )}
                 {activeTab === "carrinho" && (
@@ -549,10 +577,13 @@ export default function DashboardPage({ user, onLogout }: DashboardPageProps) {
                     onCheckout={handleCheckoutSuccess}
                     orgaoCompradorId={user.orgao_id || undefined}
                     showToast={showToast}
+                    onNavigateCatalog={() => navigateToTab("vitrine")}
                   />
                 )}
                 {activeTab === "pedidos" && (
-                  <BuyerOrders showToast={showToast} />
+                  <BuyerOrders
+                    onNavigateCatalog={() => navigateToTab("vitrine")}
+                  />
                 )}
               </>
             )}

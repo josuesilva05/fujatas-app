@@ -46,7 +46,7 @@ export default function SupplierSales() {
 				{/* COLUNA PRINCIPAL */}
 				<div className="lg:col-span-8 space-y-4">
 					{loading && (
-						<div className="border border-dashed border-slate-950/20 bg-[#FAF9F5] p-12 text-center">
+						<div className="border border-dashed border-blue-950/10 bg-[#F8FAFE] p-8 text-center">
 							Carregando pedidos...
 						</div>
 					)}
@@ -58,7 +58,7 @@ export default function SupplierSales() {
 					)}
 
 					{!loading && !error && orders.length === 0 && (
-						<div className="border border-dashed border-slate-950/20 bg-[#FAF9F5] p-12 text-center">
+						<div className="border border-dashed border-blue-950/10 bg-[#F8FAFE] p-8 text-center">
 							Nenhum pedido encontrado.
 						</div>
 					)}
@@ -68,9 +68,9 @@ export default function SupplierSales() {
 						orders.map((order) => (
 							<div
 								key={order.id}
-								className="border border-slate-950/10 bg-[#FAF9F5] p-5"
+								className="border border-blue-950/8 bg-[#F8FAFE] p-5"
 							>
-								<div className="flex justify-between items-start border-b border-slate-950/10 pb-3 mb-3">
+								<div className="flex justify-between items-start border-b border-blue-950/8 pb-3 mb-3">
 									<div>
 										<h3 className="font-semibold text-slate-900">
 											{order.orgao_comprador?.nome}
@@ -109,7 +109,7 @@ export default function SupplierSales() {
 				</div>
 
 				{/* COLUNA LATERAL */}
-				<div className="lg:col-span-4 bg-[#FAF9F5] border border-slate-955/10 p-5 space-y-5">
+				<div className="lg:col-span-4 bg-[#F8FAFE] border border-slate-955/10 p-5 space-y-5">
 					<span className="text-[10px] font-sans font-bold tracking-wider text-slate-500 block border-b border-slate-955/10 pb-2">
 						§ FATURAMENTO E LOGÍSTICA
 					</span>
@@ -121,7 +121,7 @@ export default function SupplierSales() {
 							administração pública.
 						</p>
 
-						<div className="border border-slate-950/10 p-4 bg-[#F7F6F2]/50">
+						<div className="border border-blue-950/8 p-4 bg-[#F4F7FA]/50">
 							<div className="flex justify-between mb-2">
 								<span>Total de Pedidos</span>
 								<strong>{orders.length}</strong>
@@ -142,7 +142,7 @@ export default function SupplierSales() {
 							</div>
 						</div>
 
-						<div className="border border-slate-950/10 p-4 bg-[#F7F6F2]/50">
+						<div className="border border-blue-950/8 p-4 bg-[#F4F7FA]/50">
 							<p className="font-bold text-[10px] uppercase tracking-wide mb-2">
 								Última atualização
 							</p>

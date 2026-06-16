@@ -110,6 +110,35 @@ export interface ItemSearchResponse {
   grupo?: GrupoLoteResponse;
 }
 
+export interface SortResponse {
+  empty: boolean;
+  sorted: boolean;
+  unsorted: boolean;
+}
+
+export interface PageableResponse {
+  offset: number;
+  pageNumber: number;
+  pageSize: number;
+  paged: boolean;
+  sort: SortResponse;
+  unpaged: boolean;
+}
+
+export interface ItemSearchPageResponse {
+  content: ItemSearchResponse[];
+  empty: boolean;
+  first: boolean;
+  last: boolean;
+  number: number;
+  numberOfElements: number;
+  pageable: PageableResponse;
+  size: number;
+  sort: SortResponse;
+  totalElements: number;
+  totalPages: number;
+}
+
 /* ─── ATA CRUD ─── */
 
 export async function listAtas(skip = 0, limit = 100): Promise<AtaResponse[]> {
@@ -158,8 +187,8 @@ export interface SearchItemsParams {
 
 export async function searchItems(
   params: SearchItemsParams = {},
-): Promise<ItemSearchResponse[]> {
-  const response = await api.get<ItemSearchResponse[]>("/items/search", {
+): Promise<ItemSearchPageResponse> {
+  const response = await api.get<ItemSearchPageResponse>("/items/search", {
     params,
   });
   return response.data;
@@ -208,6 +237,7 @@ export interface AtaCreatePayload {
     descricao_especificacao: string;
     unidade_medida?: string;
     marca_modelo?: string;
+    url_imagem?: string;
     valor_unitario: number;
     quantidade_total_ofertada?: number;
     participantes: ItemParticipantePayload[];

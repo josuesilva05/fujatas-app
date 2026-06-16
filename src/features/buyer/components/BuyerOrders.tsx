@@ -1,4 +1,12 @@
-import { ChevronDown, ClipboardList } from "lucide-react";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/Breadcrumb";
+import { ChevronDown, ClipboardList, Package } from "lucide-react";
 import { useEffect, useState } from "react";
 import {
   listOrders,
@@ -310,7 +318,11 @@ function OrderCard({ order }: { order: PedidoResponse }) {
 
 /* ─── Main Component ─── */
 
-export default function BuyerOrders() {
+export default function BuyerOrders({
+  onNavigateCatalog,
+}: {
+  onNavigateCatalog?: () => void;
+}) {
   const [orders, setOrders] = useState<PedidoResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -360,171 +372,208 @@ export default function BuyerOrders() {
     : orders;
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div className="border-b border-slate-955/10 pb-4">
-        <span className="text-[10px] font-sans font-bold tracking-wider text-slate-500 block uppercase">
-          MÓDULO ÓRGÃO COMPRADOR • DOCKET DE PEDIDOS
-        </span>
-        <h2 className="text-2xl font-light font-display text-slate-955 uppercase tracking-wide">
-          Meus Pedidos
-        </h2>
-      </div>
-
-      {/* Status filter */}
-      <div className="flex flex-wrap items-center gap-3">
-        {STATUS_FILTERS.map((f) => (
-          <button
-            key={f.value}
-            type="button"
-            onClick={() => setStatusFilter(f.value)}
-            className={`px-3 py-1.5 text-[10px] font-bold font-sans uppercase tracking-wider border transition cursor-pointer ${
-              statusFilter === f.value
-                ? "bg-slate-955 text-white border-slate-955"
-                : "bg-white text-slate-600 border-slate-955/10 hover:bg-slate-50"
-            }`}
-          >
-            {f.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Loading */}
-      {loading && orders.length === 0 && (
-        <div className="border border-slate-955/10 bg-white p-10 text-center">
-          <div className="inline-flex items-center gap-2 text-xs text-slate-500 font-sans">
-            <svg
-              className="animate-spin h-4 w-4 text-biap-blue"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4"
-              />
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-              />
-            </svg>
-            Carregando pedidos...
-          </div>
-        </div>
-      )}
-
-      {/* Error */}
-      {!loading && !error && orders.length === 0 && (
-        <div className="border border-dashed border-slate-955/10 bg-[#F8FAFE] p-10 text-center">
-          <ClipboardList className="w-8 h-8 text-slate-300 mx-auto mb-3" />
-          <p className="text-xs text-slate-500 font-sans">
-            Nenhum pedido de adesão encontrado. Quando você efetuar um checkout
-            no carrinho, seus pedidos aparecerão aqui.
-          </p>
-        </div>
-      )}
-
-      {!loading && error && (
-        <div className="border border-red-200 bg-red-50 p-4 text-xs text-red-700 font-sans">
-          {error}
-        </div>
-      )}
-
-      {/* Order Summary Stats */}
-      {!loading && !error && orders.length > 0 && (
-        <>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            {[
-              {
-                label: "Total",
-                value: orders.length,
-                color: "text-slate-900",
-              },
-              {
-                label: "Pendentes",
-                value: orders.filter((o) => o.status === "PENDENTE").length,
-                color: "text-amber-700",
-              },
-              {
-                label: "Autorizados",
-                value: orders.filter(
-                  (o) => o.status === "AUTORIZADO" || o.status === "EMITIDO",
-                ).length,
-                color: "text-emerald-700",
-              },
-              {
-                label: "Rejeitados",
-                value: orders.filter((o) => o.status === "REJEITADO").length,
-                color: "text-red-700",
-              },
-            ].map((stat) => (
-              <div
-                key={stat.label}
-                className="bg-[#F8FAFE] border border-slate-955/10 p-4 text-center"
-              >
-                <span className="text-2xl font-light font-display block text-slate-955">
-                  {stat.value}
-                </span>
-                <span
-                  className={`text-[9px] font-bold uppercase tracking-wider font-sans ${stat.color}`}
-                >
-                  {stat.label}
-                </span>
-              </div>
-            ))}
-          </div>
-
-          {/* Order List */}
-          <div className="space-y-3">
-            {filteredOrders.map((order) => (
-              <OrderCard key={order.id} order={order} />
-            ))}
-          </div>
-
-          {/* Load More */}
-          {hasMore && !loading && (
-            <div className="text-center pt-4">
+    <div className="animate-fade-in">
+      <div className="p-6 md:p-8 space-y-6">
+        <div className="border-b border-slate-955/10 pb-4">
+          <div className="flex items-start justify-between">
+            <div>
+              <h2 className="text-2xl font-light font-display text-slate-955 uppercase tracking-wide">
+                Meus Pedidos
+              </h2>
+              <p className="text-xs text-slate-500 font-sans mt-2">
+                Acompanhe o status dos seus pedidos de adesão. Use os filtros
+                para visualizar pedidos pendentes, autorizados ou rejeitados.
+              </p>
+              <Breadcrumb className="mt-4">
+                <BreadcrumbList>
+                  <BreadcrumbItem>
+                    <BreadcrumbLink
+                      asChild
+                      className="text-[10px] font-semibold tracking-wider uppercase hover:text-slate-700"
+                    >
+                      <button type="button" onClick={onNavigateCatalog}>
+                        Vitrine
+                      </button>
+                    </BreadcrumbLink>
+                  </BreadcrumbItem>
+                  <BreadcrumbSeparator />
+                  <BreadcrumbItem>
+                    <BreadcrumbPage className="text-[10px] font-semibold tracking-wider uppercase">
+                      Pedidos
+                    </BreadcrumbPage>
+                  </BreadcrumbItem>
+                </BreadcrumbList>
+              </Breadcrumb>
+            </div>
+            {onNavigateCatalog && (
               <button
                 type="button"
-                onClick={handleLoadMore}
-                className="px-5 py-2 text-[10px] font-bold font-sans uppercase tracking-wider bg-white text-slate-700 border border-slate-955/10 hover:bg-slate-50 transition cursor-pointer"
+                onClick={onNavigateCatalog}
+                className="border border-slate-950/8 px-3 py-1.5 text-xs font-sans font-medium text-slate-600 hover:text-blue-600 hover:border-blue-600 transition cursor-pointer flex items-center gap-1.5 rounded-none shrink-0"
               >
-                Carregar mais pedidos
+                <Package className="w-3.5 h-3.5" />
+                <span>Catálogo</span>
               </button>
-            </div>
-          )}
+            )}
+          </div>
+        </div>
 
-          {loading && orders.length > 0 && (
-            <div className="text-center py-4">
-              <div className="inline-flex items-center gap-2 text-xs text-slate-500 font-sans">
-                <svg
-                  className="animate-spin h-4 w-4 text-biap-blue"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  />
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  />
-                </svg>
-                Carregando mais...
-              </div>
+        {/* Status filter */}
+        <div className="flex flex-wrap items-center gap-3">
+          {STATUS_FILTERS.map((f) => (
+            <button
+              key={f.value}
+              type="button"
+              onClick={() => setStatusFilter(f.value)}
+              className={`px-3 py-1.5 text-[10px] font-bold font-sans uppercase tracking-wider border transition cursor-pointer ${
+                statusFilter === f.value
+                  ? "bg-slate-955 text-white border-slate-955"
+                  : "bg-white text-slate-600 border-slate-955/10 hover:bg-slate-50"
+              }`}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Loading */}
+        {loading && orders.length === 0 && (
+          <div className="border border-slate-955/10 bg-white p-10 text-center">
+            <div className="inline-flex items-center gap-2 text-xs text-slate-500 font-sans">
+              <svg
+                className="animate-spin h-4 w-4 text-biap-blue"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                />
+              </svg>
+              Carregando pedidos...
             </div>
-          )}
-        </>
-      )}
+          </div>
+        )}
+
+        {/* Error */}
+        {!loading && !error && orders.length === 0 && (
+          <div className="border border-dashed border-slate-955/10 bg-[#F8FAFE] p-10 text-center">
+            <ClipboardList className="w-8 h-8 text-slate-300 mx-auto mb-3" />
+            <p className="text-xs text-slate-500 font-sans">
+              Nenhum pedido de adesão encontrado. Quando você efetuar um
+              checkout no carrinho, seus pedidos aparecerão aqui.
+            </p>
+          </div>
+        )}
+
+        {!loading && error && (
+          <div className="border border-red-200 bg-red-50 p-4 text-xs text-red-700 font-sans">
+            {error}
+          </div>
+        )}
+
+        {/* Order Summary Stats */}
+        {!loading && !error && orders.length > 0 && (
+          <>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              {[
+                {
+                  label: "Total",
+                  value: orders.length,
+                  color: "text-slate-900",
+                },
+                {
+                  label: "Pendentes",
+                  value: orders.filter((o) => o.status === "PENDENTE").length,
+                  color: "text-amber-700",
+                },
+                {
+                  label: "Autorizados",
+                  value: orders.filter(
+                    (o) => o.status === "AUTORIZADO" || o.status === "EMITIDO",
+                  ).length,
+                  color: "text-emerald-700",
+                },
+                {
+                  label: "Rejeitados",
+                  value: orders.filter((o) => o.status === "REJEITADO").length,
+                  color: "text-red-700",
+                },
+              ].map((stat) => (
+                <div
+                  key={stat.label}
+                  className="bg-[#F8FAFE] border border-slate-955/10 p-4 text-center"
+                >
+                  <span className="text-2xl font-light font-display block text-slate-955">
+                    {stat.value}
+                  </span>
+                  <span
+                    className={`text-[9px] font-bold uppercase tracking-wider font-sans ${stat.color}`}
+                  >
+                    {stat.label}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            {/* Order List */}
+            <div className="space-y-3">
+              {filteredOrders.map((order) => (
+                <OrderCard key={order.id} order={order} />
+              ))}
+            </div>
+
+            {/* Load More */}
+            {hasMore && !loading && (
+              <div className="text-center pt-4">
+                <button
+                  type="button"
+                  onClick={handleLoadMore}
+                  className="px-5 py-2 text-[10px] font-bold font-sans uppercase tracking-wider bg-white text-slate-700 border border-slate-955/10 hover:bg-slate-50 transition cursor-pointer"
+                >
+                  Carregar mais pedidos
+                </button>
+              </div>
+            )}
+
+            {loading && orders.length > 0 && (
+              <div className="text-center py-4">
+                <div className="inline-flex items-center gap-2 text-xs text-slate-500 font-sans">
+                  <svg
+                    className="animate-spin h-4 w-4 text-biap-blue"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    />
+                  </svg>
+                  Carregando mais...
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </div>
     </div>
   );
 }
