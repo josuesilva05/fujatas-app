@@ -6,6 +6,7 @@ export interface SupplierBalance {
 	descricao_especificacao: string;
 	unidade_medida?: string;
 	marca_modelo?: string;
+	url_imagem?: string;
 	valor_unitario: number;
 	quantidade_total_ofertada?: number;
 	quantidade_saldo_disponivel?: number;

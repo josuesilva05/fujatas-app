@@ -1,13 +1,15 @@
-import { ChevronLeft, ChevronRight, Search } from "lucide-react";
+import { ChevronLeft, ChevronRight, Package, Search } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
 	getSupplierBalances,
 	type SupplierBalance,
 } from "@/services/supplierService";
-import { getItemImage } from "@/utils/itemImage";
 
-function getPageNumbers(current: number, total: number): (number | "ellipsis")[] {
+function getPageNumbers(
+	current: number,
+	total: number,
+): (number | "ellipsis")[] {
 	if (total <= 7) {
 		return Array.from({ length: total }, (_, i) => i + 1);
 	}
@@ -181,7 +183,6 @@ export default function SupplierBalances() {
 									const saldo = item.quantidade_saldo_disponivel ?? 0;
 									const consumido =
 										total > 0 ? Math.round(((total - saldo) / total) * 100) : 0;
-									const img = getItemImage(item.descricao_especificacao ?? "");
 
 									return (
 										<div
@@ -189,10 +190,20 @@ export default function SupplierBalances() {
 											className="border border-slate-200 p-4 hover:bg-slate-50/50 transition-colors"
 										>
 											<div className="flex gap-4">
-												<div
-													className={`shrink-0 w-14 h-14 rounded-lg bg-gradient-to-br ${img.bg} flex items-center justify-center text-xl shadow-sm`}
-												>
-													{img.icon}
+												<div className="relative shrink-0 w-14 h-14 rounded-lg bg-slate-50 border border-slate-200 overflow-hidden flex items-center justify-center shadow-sm">
+													<div className="absolute inset-0 flex items-center justify-center">
+														<Package className="w-5 h-5 text-slate-300" />
+													</div>
+													{item.url_imagem && (
+														<img
+															src={item.url_imagem}
+															alt={item.descricao_especificacao}
+															className="relative z-10 w-full h-full object-cover"
+															onError={(e) => {
+																e.currentTarget.style.display = "none";
+															}}
+														/>
+													)}
 												</div>
 												<div className="flex-1 min-w-0">
 													<h3 className="font-semibold text-slate-900">
@@ -265,7 +276,10 @@ export default function SupplierBalances() {
 													if (p === "ellipsis") {
 														ellipsisCount++;
 														return (
-															<span key={`ellipsis-${ellipsisCount}`} className="inline-flex items-center justify-center w-8 h-8 text-xs text-slate-400 font-sans select-none">
+															<span
+																key={`ellipsis-${ellipsisCount}`}
+																className="inline-flex items-center justify-center w-8 h-8 text-xs text-slate-400 font-sans select-none"
+															>
 																...
 															</span>
 														);
