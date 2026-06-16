@@ -1,6 +1,7 @@
-export { default as BuyerCart } from "./components/BuyerCart";
-export { default as BuyerCatalog } from "./components/BuyerCatalog";
-export { default as BuyerOrders } from "./components/BuyerOrders";
+// Buyer components — re-exported from the buyer feature module
+export { BuyerCart, BuyerCatalog, BuyerOrders } from "@/features/buyer";
+
+// Manager / Supplier components (co-located in dashboard)
 export { default as ManagerApprovals } from "./components/ManagerApprovals";
 export { default as ManagerAtaMonitor } from "./components/ManagerAtaMonitor";
 export { default as ManagerAtaUpload } from "./components/ManagerAtaUpload";

@@ -23,7 +23,7 @@ export default function BuyerCatalog({ onAddToCart }: BuyerCatalogProps) {
 			{/* Placeholder Content */}
 			<div className="space-y-6">
 				{/* Mock Filter Bar */}
-				<div className="bg-[#FAF9F5] border border-slate-955/10 p-5 relative">
+				<div className="bg-[#F8FAFE] border border-slate-955/10 p-5 relative">
 					<span className="text-[10px] font-sans font-bold tracking-wider text-slate-500 absolute top-2 right-4">
 						§ FILTRO DE PESQUISA (MOCKUP)
 					</span>
@@ -34,7 +34,7 @@ export default function BuyerCatalog({ onAddToCart }: BuyerCatalogProps) {
 								type="text"
 								disabled
 								placeholder="Buscar por objeto, palavra-chave ou licitante..."
-								className="w-full bg-[#F7F6F2]/50 border border-slate-955/10 pl-9 pr-4 py-2 text-xs font-sans text-slate-450 cursor-not-allowed"
+								className="w-full bg-[#F4F7FA]/50 border border-slate-955/10 pl-9 pr-4 py-2 text-xs font-sans text-slate-450 cursor-not-allowed"
 							/>
 						</div>
 						<div className="md:col-span-4">
@@ -42,14 +42,14 @@ export default function BuyerCatalog({ onAddToCart }: BuyerCatalogProps) {
 								type="text"
 								disabled
 								placeholder="Filtrar por ATA"
-								className="w-full bg-[#F7F6F2]/50 border border-slate-955/10 px-3 py-2 text-xs font-sans text-slate-450 cursor-not-allowed"
+								className="w-full bg-[#F4F7FA]/50 border border-slate-955/10 px-3 py-2 text-xs font-sans text-slate-450 cursor-not-allowed"
 							/>
 						</div>
 					</div>
 				</div>
 
 				{/* Decorative Dotted Placeholder Area */}
-				<div className="border border-dashed border-slate-950/20 bg-[#FAF9F5] p-12 text-center space-y-4">
+				<div className="border border-dashed border-blue-950/10 bg-[#F8FAFE] p-8 text-center space-y-4">
 					<div className="max-w-md mx-auto space-y-2">
 						<span className="text-xs font-sans font-bold text-slate-950 bg-slate-950/5 px-3 py-1 border border-slate-955/10 inline-block">
 							Componente: Vitrine de Itens
@@ -63,7 +63,7 @@ export default function BuyerCatalog({ onAddToCart }: BuyerCatalogProps) {
 					</div>
 
 					{/* Mock blueprint of item card */}
-					<div className="max-w-2xl mx-auto border border-dashed border-slate-950/10 p-5 bg-[#F7F6F2]/30 text-left space-y-3 opacity-60">
+					<div className="max-w-2xl mx-auto border border-dashed border-slate-950/10 p-5 bg-[#F4F7FA]/30 text-left space-y-3 opacity-60">
 						<div className="flex justify-between items-center text-[10px] font-sans text-slate-500">
 							<span>ATA nº XX/2026</span>
 							<span>Vigência: DD Mmm YYYY</span>

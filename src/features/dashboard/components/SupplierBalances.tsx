@@ -60,7 +60,7 @@ export default function SupplierBalances() {
 				</h2>
 			</div>
 
-			<div className="bg-[#FAF9F5] border border-slate-955/10 p-5">
+			<div className="bg-[#F8FAFE] border border-slate-955/10 p-5">
 				{loading && <p>Carregando...</p>}
 
 				{error && <p className="text-red-500">{error}</p>}

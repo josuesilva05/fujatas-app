@@ -28,7 +28,7 @@ export default function ManagerApprovals({
 			{/* Placeholder Content */}
 			<div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 				<div className="lg:col-span-8 space-y-4">
-					<div className="border border-dashed border-slate-950/20 bg-[#FAF9F5] p-12 text-center space-y-4">
+					<div className="border border-dashed border-blue-950/10 bg-[#F8FAFE] p-8 text-center space-y-4">
 						<div className="max-w-md mx-auto space-y-2">
 							<span className="text-xs font-sans font-bold text-slate-955 bg-slate-955/5 px-3 py-1 border border-slate-955/10 inline-block">
 								Componente: Dashboard de Autorizações
@@ -42,7 +42,7 @@ export default function ManagerApprovals({
 					</div>
 				</div>
 
-				<div className="lg:col-span-4 bg-[#FAF9F5] border border-slate-955/10 p-5 space-y-5">
+				<div className="lg:col-span-4 bg-[#F8FAFE] border border-slate-955/10 p-5 space-y-5">
 					<span className="text-[10px] font-sans font-bold tracking-wider text-slate-500 block border-b border-slate-955/10 pb-2">
 						§ INTERATIVIDADE (MOCKUP)
 					</span>
@@ -52,7 +52,7 @@ export default function ManagerApprovals({
 							Cada análise de adesão permitirá ao gestor homologar diretamente a
 							compra ou indeferi-la, exigindo o preenchimento de justificativa.
 						</p>
-						<div className="border border-dashed border-slate-950/20 p-4 bg-[#F7F6F2]/50 text-slate-500 text-center font-bold text-[10px] uppercase tracking-wide font-sans">
+						<div className="border border-dashed border-blue-950/10 p-4 bg-[#F4F7FA]/50 text-slate-500 text-center font-bold text-[10px] uppercase tracking-wide font-sans">
 							[Análise de Pedidos Indisponível]
 						</div>
 					</div>

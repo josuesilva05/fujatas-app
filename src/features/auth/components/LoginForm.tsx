@@ -88,7 +88,7 @@ const styles = {
 		checkbox:
 			"w-4 h-4 rounded-none border-slate-350 text-slate-955 focus:ring-0 bg-transparent transition-all cursor-pointer accent-slate-950",
 		error:
-			"mb-5 p-3.5 text-xs bg-[#FAF9F5] border border-red-900/25 text-red-950 rounded-none flex items-start gap-3 font-medium leading-relaxed animate-slide-down",
+			"mb-5 p-3.5 text-xs bg-[#F8FAFE] border border-red-900/25 text-red-950 rounded-none flex items-start gap-3 font-medium leading-relaxed animate-slide-down",
 		border: "w-full max-w-[300px] mx-auto",
 		headerBorder: "mb-5 border-b border-slate-900/10 pb-3.5",
 		eyeIcon: "text-slate-500 hover:text-slate-950",
@@ -353,7 +353,7 @@ export default function LoginForm({
 						{isLoading ? (
 							<>
 								<svg
-									className="animate-spin h-4 w-4 text-[#F7F6F2]"
+									className="animate-spin h-4 w-4 text-[#F4F7FA]"
 									fill="none"
 									viewBox="0 0 24 24"
 									role="img"

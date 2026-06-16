@@ -145,7 +145,7 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
 
 	return (
 		<div className="min-h-screen relative overflow-hidden">
-			<div className="min-h-screen bg-[#F7F6F2] text-slate-955 flex flex-col md:flex-row relative font-sans overflow-hidden select-none">
+			<div className="min-h-screen bg-[#F4F7FA] bg-pattern-document text-slate-955 flex flex-col md:flex-row relative font-sans overflow-hidden select-none">
 				{/* COLUMN 1: STARK INDEX MARGIN */}
 				<div className="w-16 lg:w-20 border-r border-slate-955/10 flex flex-col items-center justify-between py-12 shrink-0 hidden md:flex">
 					<div className="flex items-center justify-center w-8 h-8 bg-slate-955 text-white font-sans text-xs font-bold">
@@ -266,7 +266,7 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
 				</div>
 
 				{/* COLUMN 3: STARK LOGIN PANEL */}
-				<div className="w-full md:w-[35%] lg:w-[30%] shrink-0 flex flex-col justify-between p-6 md:p-8 lg:p-10 relative bg-[#FAF9F5] z-10 border-l border-slate-955/10">
+				<div className="w-full md:w-[35%] lg:w-[30%] shrink-0 flex flex-col justify-between p-6 md:p-8 lg:p-10 relative bg-[#EFF3F8] z-10 border-l border-slate-955/10">
 					{/* Top right buttons */}
 					<div className="flex justify-end items-center gap-3 mb-10 md:mb-0">
 						<a
