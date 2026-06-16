@@ -197,7 +197,11 @@ export default function SupplierBalances() {
 													{item.url_imagem && (
 														<img
 															src={item.url_imagem}
-															alt={item.descricao_especificacao}
+															alt={
+																item.descricao_especificacao
+																	? `Imagem do item ${item.descricao_especificacao}`
+																	: "Imagem do item"
+															}
 															className="relative z-10 w-full h-full object-cover"
 															onError={(e) => {
 																e.currentTarget.style.display = "none";
