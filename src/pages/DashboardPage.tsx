@@ -13,7 +13,8 @@ import {
   ShoppingCart,
   X,
 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import Toast, { type ToastType } from "@/components/ui/Toast";
 
 // Import modular layouts
 import {
@@ -129,7 +130,33 @@ export default function DashboardPage({ user, onLogout }: DashboardPageProps) {
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  const [cart, setCart] = useState<CartItem[]>([]);
+  const [cart, setCart] = useState<CartItem[]>(() => {
+    try {
+      const saved = localStorage.getItem("biap_cart");
+      return saved ? (JSON.parse(saved) as CartItem[]) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const [toast, setToast] = useState<{
+    message: string;
+    type: ToastType;
+  } | null>(null);
+  const showToast = useCallback(
+    (message: string, type: ToastType = "success") => {
+      setToast({ message, type });
+    },
+    [],
+  );
+
+  // Sync cart to localStorage
+  useEffect(() => {
+    localStorage.setItem("biap_cart", JSON.stringify(cart));
+  }, [cart]);
+
+  // Cart item IDs set for badge display in vitrine
+  const cartItemIds = new Set(cart.map((item) => item.id));
 
   const profileMenuRef = useRef<HTMLDivElement>(null);
 
@@ -210,8 +237,11 @@ export default function DashboardPage({ user, onLogout }: DashboardPageProps) {
       id: string;
       descricao_especificacao: string;
       valor_unitario: string;
+      fornecedor: { id: string; razao_social: string };
+      quantidade_total_ofertada: string;
+      quantidade_saldo_disponivel: string;
+      ata: { id: string; numero_ata: string };
     };
-    ata: { id: string; numero_ata: string };
     qty: number;
     type: "direta" | "carona";
   }) => {
@@ -222,26 +252,33 @@ export default function DashboardPage({ user, onLogout }: DashboardPageProps) {
       if (existingIndex > -1) {
         const updated = [...prev];
         updated[existingIndex].qty += payload.qty;
+        showToast(
+          `Quantidade atualizada: ${payload.item.descricao_especificacao.slice(0, 60)} (${updated[existingIndex].qty} un)`,
+        );
         return updated;
       }
+      showToast(
+        `"${payload.item.descricao_especificacao.slice(0, 60)}" adicionado ao carrinho`,
+      );
       return [
         ...prev,
         {
           id: payload.item.id,
-          ataNumero: payload.ata.numero_ata,
-          ataId: payload.ata.id,
+          ataNumero: payload.item.ata.numero_ata,
+          ataId: payload.item.ata.id,
           objeto: payload.item.descricao_especificacao,
-          fornecedor: "",
-          fornecedorId: "",
+          fornecedor: payload.item.fornecedor?.razao_social || "",
+          fornecedorId: payload.item.fornecedor?.id || "",
           valorUnitario: Number.parseFloat(payload.item.valor_unitario),
-          saldoTotal: 0,
-          saldoConsumido: 0,
+          saldoTotal: Number.parseFloat(payload.item.quantidade_total_ofertada),
+          saldoConsumido: Number.parseFloat(
+            payload.item.quantidade_saldo_disponivel,
+          ),
           qty: payload.qty,
           type: payload.type,
         },
       ];
     });
-    setActiveTab("carrinho");
   };
 
   const handleUpdateCartQty = (id: string, qty: number) => {
@@ -261,7 +298,7 @@ export default function DashboardPage({ user, onLogout }: DashboardPageProps) {
   const navItems = NAV_ITEMS[activeRole] || [];
 
   return (
-    <div className="h-screen w-screen bg-[#F4F7FA] bg-pattern-document text-slate-900 flex flex-col md:flex-row relative font-sans overflow-hidden select-none">
+    <div className="h-screen w-screen bg-[#F4F7FA] bg-pattern-document text-slate-900 flex flex-col relative font-sans overflow-hidden select-none">
       {/* MOBILE HEADER */}
       <header className="md:hidden flex items-center justify-between px-4 py-3 border-b border-blue-950/8 bg-[#EFF3F8] shrink-0 z-30">
         <button
@@ -290,9 +327,9 @@ export default function DashboardPage({ user, onLogout }: DashboardPageProps) {
         />
       )}
 
-      {/* SIDEBAR */}
+      {/* SIDEBAR — always fixed, never pushed by content */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-72 bg-[#EFF3F8] border-r border-blue-950/8 flex flex-col justify-between p-6 overflow-y-auto transition-transform duration-200 ease-out md:static md:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 w-72 bg-[#EFF3F8] border-r border-blue-950/8 flex flex-col justify-between p-6 overflow-y-auto transition-transform duration-200 ease-out md:translate-x-0 ${
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -459,10 +496,10 @@ export default function DashboardPage({ user, onLogout }: DashboardPageProps) {
         </div>
       </aside>
 
-      {/* MAIN CONTENT */}
-      <div className="flex-grow flex flex-col h-full md:h-screen overflow-hidden">
-        <main className="flex-grow p-4 sm:p-6 md:p-8 overflow-y-auto max-w-6xl w-full mx-auto pb-12">
-          <div className="bg-[#F8FAFE] border border-blue-950/8 p-6 md:p-8 shadow-[0_4px_25px_rgba(0,0,0,0.015)] relative animate-fade-in">
+      {/* MAIN CONTENT — offset on desktop for fixed sidebar */}
+      <div className="flex-1 flex flex-col overflow-hidden md:ml-72">
+        <main className="flex-1 overflow-y-auto">
+          <div className="bg-[#F8FAFE] border-r border-l border-blue-950/8 shadow-[0_4px_25px_rgba(0,0,0,0.015)] relative min-h-full animate-fade-in">
             {/* Official Watermark Seal */}
             <div className="absolute top-6 right-6 pointer-events-none opacity-[0.03] select-none hidden md:block">
               <svg className="w-20 h-20 text-slate-950" viewBox="0 0 100 100">
@@ -501,6 +538,7 @@ export default function DashboardPage({ user, onLogout }: DashboardPageProps) {
                   <BuyerCatalog
                     onAddToCart={handleAddToCart}
                     orgaoCompradorId={user.orgao_id || undefined}
+                    cartItemIds={cartItemIds}
                   />
                 )}
                 {activeTab === "carrinho" && (
@@ -510,9 +548,12 @@ export default function DashboardPage({ user, onLogout }: DashboardPageProps) {
                     onRemove={handleRemoveCartItem}
                     onCheckout={handleCheckoutSuccess}
                     orgaoCompradorId={user.orgao_id || undefined}
+                    showToast={showToast}
                   />
                 )}
-                {activeTab === "pedidos" && <BuyerOrders />}
+                {activeTab === "pedidos" && (
+                  <BuyerOrders showToast={showToast} />
+                )}
               </>
             )}
 
@@ -537,6 +578,15 @@ export default function DashboardPage({ user, onLogout }: DashboardPageProps) {
           </div>
         </main>
       </div>
+
+      {/* Toast Notification */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
     </div>
   );
 }

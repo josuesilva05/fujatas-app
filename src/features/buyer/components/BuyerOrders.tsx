@@ -1,4 +1,4 @@
-import { ChevronDown, ClipboardList, Eye } from "lucide-react";
+import { ChevronDown, ClipboardList } from "lucide-react";
 import { useEffect, useState } from "react";
 import {
   listOrders,
@@ -62,6 +62,14 @@ const STATUS_STYLES: Record<
     label: "Emitido",
   },
 };
+
+const STATUS_FILTERS = [
+  { value: "", label: "Todos os status" },
+  { value: "PENDENTE", label: "Pendentes" },
+  { value: "AUTORIZADO", label: "Autorizados" },
+  { value: "EMITIDO", label: "Emitidos" },
+  { value: "REJEITADO", label: "Rejeitados" },
+];
 
 /* ─── Order Card Component ─── */
 
@@ -306,21 +314,53 @@ export default function BuyerOrders() {
   const [orders, setOrders] = useState<PedidoResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const pageSize = 20;
 
   useEffect(() => {
-    setLoading(true);
-    listOrders()
-      .then(setOrders)
-      .catch((err) => {
+    setPage(1);
+    const load = async () => {
+      setLoading(true);
+      setError("");
+      try {
+        const data = await listOrders(0, pageSize + 1);
+        const items = data.slice(0, pageSize);
+        setHasMore(data.length > pageSize);
+        setOrders(items);
+      } catch (err: any) {
         console.error(err);
         setError("Erro ao carregar pedidos. Verifique sua conexão.");
-      })
-      .finally(() => setLoading(false));
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
   }, []);
+
+  const handleLoadMore = async () => {
+    const nextPage = page + 1;
+    setPage(nextPage);
+    setLoading(true);
+    try {
+      const data = await listOrders((nextPage - 1) * pageSize, pageSize + 1);
+      const items = data.slice(0, pageSize);
+      setHasMore(data.length > pageSize);
+      setOrders((prev) => [...prev, ...items]);
+    } catch (err: any) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filteredOrders = statusFilter
+    ? orders.filter((o) => o.status === statusFilter)
+    : orders;
 
   return (
     <div className="space-y-6 animate-fade-in">
-      {/* Editorial Section Title */}
       <div className="border-b border-slate-955/10 pb-4">
         <span className="text-[10px] font-sans font-bold tracking-wider text-slate-500 block uppercase">
           MÓDULO ÓRGÃO COMPRADOR • DOCKET DE PEDIDOS
@@ -330,8 +370,26 @@ export default function BuyerOrders() {
         </h2>
       </div>
 
+      {/* Status filter */}
+      <div className="flex flex-wrap items-center gap-3">
+        {STATUS_FILTERS.map((f) => (
+          <button
+            key={f.value}
+            type="button"
+            onClick={() => setStatusFilter(f.value)}
+            className={`px-3 py-1.5 text-[10px] font-bold font-sans uppercase tracking-wider border transition cursor-pointer ${
+              statusFilter === f.value
+                ? "bg-slate-955 text-white border-slate-955"
+                : "bg-white text-slate-600 border-slate-955/10 hover:bg-slate-50"
+            }`}
+          >
+            {f.label}
+          </button>
+        ))}
+      </div>
+
       {/* Loading */}
-      {loading && (
+      {loading && orders.length === 0 && (
         <div className="border border-slate-955/10 bg-white p-10 text-center">
           <div className="inline-flex items-center gap-2 text-xs text-slate-500 font-sans">
             <svg
@@ -359,13 +417,6 @@ export default function BuyerOrders() {
       )}
 
       {/* Error */}
-      {!loading && error && (
-        <div className="border border-red-200 bg-red-50 p-4 text-xs text-red-700 font-sans">
-          {error}
-        </div>
-      )}
-
-      {/* Empty state */}
       {!loading && !error && orders.length === 0 && (
         <div className="border border-dashed border-slate-955/10 bg-[#F8FAFE] p-10 text-center">
           <ClipboardList className="w-8 h-8 text-slate-300 mx-auto mb-3" />
@@ -373,6 +424,12 @@ export default function BuyerOrders() {
             Nenhum pedido de adesão encontrado. Quando você efetuar um checkout
             no carrinho, seus pedidos aparecerão aqui.
           </p>
+        </div>
+      )}
+
+      {!loading && error && (
+        <div className="border border-red-200 bg-red-50 p-4 text-xs text-red-700 font-sans">
+          {error}
         </div>
       )}
 
@@ -422,10 +479,50 @@ export default function BuyerOrders() {
 
           {/* Order List */}
           <div className="space-y-3">
-            {orders.map((order) => (
+            {filteredOrders.map((order) => (
               <OrderCard key={order.id} order={order} />
             ))}
           </div>
+
+          {/* Load More */}
+          {hasMore && !loading && (
+            <div className="text-center pt-4">
+              <button
+                type="button"
+                onClick={handleLoadMore}
+                className="px-5 py-2 text-[10px] font-bold font-sans uppercase tracking-wider bg-white text-slate-700 border border-slate-955/10 hover:bg-slate-50 transition cursor-pointer"
+              >
+                Carregar mais pedidos
+              </button>
+            </div>
+          )}
+
+          {loading && orders.length > 0 && (
+            <div className="text-center py-4">
+              <div className="inline-flex items-center gap-2 text-xs text-slate-500 font-sans">
+                <svg
+                  className="animate-spin h-4 w-4 text-biap-blue"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  />
+                </svg>
+                Carregando mais...
+              </div>
+            </div>
+          )}
         </>
       )}
     </div>
