@@ -1,320 +1,332 @@
-import { ChevronLeft, ChevronRight, Package, Search } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import {
-	getSupplierBalances,
-	type SupplierBalance,
-} from "@/services/supplierService";
+	Bell,
+	Building2,
+	ChevronLeft,
+	Loader2,
+	Mail,
+	Phone,
+	Search,
+	User,
+} from "lucide-react";
+import { useEffect, useState } from "react";
+import { Link, useParams } from "react-router-dom";
+import {
+	Breadcrumb,
+	BreadcrumbItem,
+	BreadcrumbLink,
+	BreadcrumbList,
+	BreadcrumbPage,
+	BreadcrumbSeparator,
+} from "@/components/ui/Breadcrumb";
+import { listSuppliers } from "@/services/atas";
+import { getSupplierBalances } from "@/services/supplierService";
+import type { FornecedorResponse, SupplierBalance } from "@/types/supplier";
 
-function getPageNumbers(
-	current: number,
-	total: number,
-): (number | "ellipsis")[] {
-	if (total <= 7) {
-		return Array.from({ length: total }, (_, i) => i + 1);
-	}
-	const pages: (number | "ellipsis")[] = [];
-	pages.push(1);
-	if (current > 3) pages.push("ellipsis");
-	const start = Math.max(2, current - 1);
-	const end = Math.min(total - 1, current + 1);
-	for (let i = start; i <= end; i++) pages.push(i);
-	if (current < total - 2) pages.push("ellipsis");
-	pages.push(total);
-	return pages;
+interface SupplierBalancesProps {
+	user: {
+		id: string;
+		email: string;
+		papel: string;
+		orgao_id: string | null;
+		fornecedor_id: string | null;
+	};
 }
 
-function BalanceProgressBar({ percentage }: { percentage: number }) {
-	const clamped = Math.min(100, Math.max(0, percentage));
-	const color =
-		clamped >= 90
-			? "bg-red-500"
-			: clamped >= 70
-				? "bg-amber-500"
-				: "bg-emerald-500";
+export default function SupplierBalances({ user }: SupplierBalancesProps) {
+	const { role: rolePath } = useParams();
+	const role = rolePath ?? "fornecedor";
 
-	return (
-		<div className="flex items-center gap-2">
-			<div className="flex-1 h-2 bg-slate-200 rounded-full overflow-hidden">
-				<div
-					className={`h-full rounded-full transition-all duration-500 ${color}`}
-					style={{ width: `${clamped}%` }}
-				/>
-			</div>
-			<span className="text-xs font-medium text-slate-500 tabular-nums w-10 text-right">
-				{clamped}%
-			</span>
-		</div>
+	const isAdminViewing =
+		user.papel === "ADMIN_GERENCIADOR" && !user.fornecedor_id;
+
+	const [suppliers, setSuppliers] = useState<FornecedorResponse[]>([]);
+	const [loadingSuppliers, setLoadingSuppliers] = useState(false);
+
+	const [selectedSupplierId, setSelectedSupplierId] = useState<string | null>(
+		null,
 	);
-}
-
-export default function SupplierBalances() {
-	const navigate = useNavigate();
 	const [items, setItems] = useState<SupplierBalance[]>([]);
-	const [loading, setLoading] = useState(true);
+	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState("");
-	const [search, setSearch] = useState("");
-
-	console.log("RENDERIZANDO SUPPLIER BALANCES");
+	const [searchQ, setSearchQ] = useState("");
 
 	useEffect(() => {
-		console.log("SUPPLIER BALANCES MONTADO");
-
-		const session = JSON.parse(localStorage.getItem("biap_user") || "{}");
-
-		console.log("SESSION:", session);
-
-		const fornecedorId = session.fornecedor_id;
-
-		console.log("FORNECEDOR ID:", fornecedorId);
-
-		if (!fornecedorId) {
-			console.error("FORNECEDOR NÃO ENCONTRADO");
-
-			setError("Fornecedor não identificado.");
-			setLoading(false);
-			return;
+		if (isAdminViewing && !selectedSupplierId) {
+			setLoadingSuppliers(true);
+			listSuppliers()
+				.then(setSuppliers)
+				.catch(() => setError("Erro ao carregar fornecedores."))
+				.finally(() => setLoadingSuppliers(false));
 		}
+	}, [isAdminViewing, selectedSupplierId]);
 
-		console.log("CHAMANDO API getSupplierBalances:", fornecedorId);
+	useEffect(() => {
+		const id = selectedSupplierId || user.fornecedor_id;
+		if (!id) return;
 
-		getSupplierBalances(fornecedorId)
-			.then((data) => {
-				console.log("DADOS RECEBIDOS:", data);
-				setItems(data);
-			})
-			.catch((err) => {
-				console.error("ERRO AO CARREGAR SALDOS:", err);
+		setLoading(true);
+		setError("");
+		getSupplierBalances(id)
+			.then(setItems)
+			.catch(() => setError("Erro ao carregar saldos."))
+			.finally(() => setLoading(false));
+	}, [selectedSupplierId, user.fornecedor_id]);
 
-				setError("Erro ao carregar saldos.");
-			})
-			.finally(() => {
-				console.log("FINALIZOU REQUISIÇÃO");
-				setLoading(false);
-			});
-	}, []);
-
-	const filteredItems = useMemo(() => {
-		if (!search.trim()) return items;
-		const term = search.toLowerCase();
-		return items.filter(
-			(item) =>
-				item.descricao_especificacao?.toLowerCase().includes(term) ||
-				item.ata?.numero_ata?.toLowerCase().includes(term) ||
-				item.marca_modelo?.toLowerCase().includes(term),
-		);
-	}, [items, search]);
-
-	const [currentPage, setCurrentPage] = useState(1);
-	const pageSize = 3;
-	const totalPages = Math.max(1, Math.ceil(filteredItems.length / pageSize));
-	const paginatedItems = filteredItems.slice(
-		(currentPage - 1) * pageSize,
-		currentPage * pageSize,
+	const q = searchQ.toLowerCase();
+	const filteredSuppliers = suppliers.filter(
+		(s) => s.razao_social.toLowerCase().includes(q) || s.cnpj.includes(q),
 	);
-	const goToPage = (page: number) =>
-		setCurrentPage(Math.max(1, Math.min(page, totalPages)));
-	const nextPage = () => goToPage(currentPage + 1);
-	const prevPage = () => goToPage(currentPage - 1);
-	const hasNext = currentPage < totalPages;
-	const hasPrev = currentPage > 1;
+
+	const selectedSupplier = suppliers.find((s) => s.id === selectedSupplierId);
 
 	return (
-		<div className="space-y-6 animate-fade-in">
-			<div className="border-b border-slate-955/10 pb-4">
-				<span className="text-[10px] font-sans font-bold tracking-wider text-slate-500 block uppercase">
-					MÓDULO FORNECEDOR • CONTABILIDADE PÚBLICA
-				</span>
+		<div className="animate-fade-in">
+			<div className="p-6 md:p-8 space-y-6">
+				<div className="border-b border-slate-955/10 pb-4">
+					<div className="flex items-start justify-between">
+						<div>
+							<span className="text-[10px] font-sans font-bold tracking-wider text-slate-500 block uppercase">
+								MÓDULO FORNECEDOR • ITENS ATIVOS
+							</span>
+							<h2 className="text-2xl font-light font-display text-slate-955 uppercase tracking-wide">
+								{selectedSupplierId
+									? `Itens — ${selectedSupplier?.razao_social ?? ""}`
+									: "Gerenciamento de Itens Ativos"}
+							</h2>
+							<Breadcrumb className="mt-4">
+								<BreadcrumbList>
+									<BreadcrumbItem>
+										{selectedSupplierId ? (
+											<BreadcrumbLink
+												asChild
+												className="text-[10px] font-semibold tracking-wider uppercase hover:text-slate-700"
+											>
+												<button
+													type="button"
+													onClick={() => setSelectedSupplierId(null)}
+													className="cursor-pointer"
+												>
+													Fornecedores
+												</button>
+											</BreadcrumbLink>
+										) : (
+											<BreadcrumbPage className="text-[10px] font-semibold tracking-wider uppercase">
+												Fornecedores
+											</BreadcrumbPage>
+										)}
+									</BreadcrumbItem>
+									{selectedSupplierId && (
+										<>
+											<BreadcrumbSeparator />
+											<BreadcrumbItem>
+												<BreadcrumbPage className="text-[10px] font-semibold tracking-wider uppercase">
+													Itens Ativos
+												</BreadcrumbPage>
+											</BreadcrumbItem>
+										</>
+									)}
+									<BreadcrumbSeparator />
+									<BreadcrumbItem>
+										<BreadcrumbLink
+											asChild
+											className="text-[10px] font-semibold tracking-wider uppercase hover:text-slate-700"
+										>
+											<Link to={`/${role}/vendas`}>Notificações</Link>
+										</BreadcrumbLink>
+									</BreadcrumbItem>
+								</BreadcrumbList>
+							</Breadcrumb>
+						</div>
+						<div className="flex items-center gap-2 shrink-0">
+							<Link
+								to={`/${role}/vendas`}
+								className="border border-slate-950/8 px-3 py-1.5 text-xs font-sans font-medium text-slate-600 hover:text-blue-600 hover:border-blue-600 transition cursor-pointer flex items-center gap-1.5 rounded-none"
+							>
+								<Bell className="w-3.5 h-3.5" />
+								<span>Notificações</span>
+							</Link>
+						</div>
+					</div>
+				</div>
 
-				<h2 className="text-2xl font-light font-display text-slate-955 uppercase tracking-wide">
-					Central de Saldos do Licitante
-				</h2>
-			</div>
+				{error && (
+					<div className="border border-red-200 bg-red-50 p-4 text-xs text-red-700 font-sans">
+						{error}
+					</div>
+				)}
 
-			<div className="flex gap-4 border-b border-slate-200 pb-0">
-				<button
-					type="button"
-					onClick={() => navigate("/fornecedor/saldos")}
-					className="px-4 py-2 text-xs font-semibold uppercase tracking-wider border-b-2 transition-colors cursor-pointer -mb-[1px] border-slate-955 text-slate-955"
-				>
-					Central de Saldos
-				</button>
-				<button
-					type="button"
-					onClick={() => navigate("/fornecedor/vendas")}
-					className="px-4 py-2 text-xs font-semibold uppercase tracking-wider border-b-2 transition-colors cursor-pointer border-transparent text-slate-400 hover:text-slate-600 hover:border-slate-300"
-				>
-					Notificações de Vendas
-				</button>
-			</div>
-
-			<div className="bg-[#F8FAFE] border border-slate-955/10 p-5">
-				{loading && <p>Carregando...</p>}
-
-				{error && <p className="text-red-500">{error}</p>}
-
-				{!loading && !error && (
-					<div className="space-y-4">
-						{/* Busca */}
-						<div className="relative max-w-md">
-							<Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+				{/* Admin: supplier list */}
+				{isAdminViewing && !selectedSupplierId && (
+					<>
+						<div className="relative max-w-xs">
+							<Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
 							<input
 								type="text"
-								placeholder="Buscar por descrição, ata ou marca..."
-								value={search}
-								onChange={(e) => {
-									setSearch(e.target.value);
-									goToPage(1);
-								}}
-								className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 bg-white rounded-md outline-none focus:border-slate-955/30 focus:ring-1 focus:ring-slate-955/10 transition"
+								value={searchQ}
+								onChange={(e) => setSearchQ(e.target.value)}
+								placeholder="Buscar fornecedor..."
+								className="w-full bg-[#F4F7FA]/50 border border-slate-955/10 pl-9 pr-3 py-1.5 text-xs font-sans text-slate-900 placeholder:text-slate-400 focus:outline-none focus-visible:ring-1 focus-visible:ring-blue-600"
 							/>
 						</div>
 
-						{filteredItems.length === 0 ? (
-							<p>
-								{search
-									? "Nenhum item encontrado para esta busca."
-									: "Nenhum item encontrado."}
-							</p>
+						{loadingSuppliers ? (
+							<div className="flex items-center justify-center py-16">
+								<Loader2 className="w-6 h-6 animate-spin text-slate-400" />
+							</div>
+						) : filteredSuppliers.length === 0 ? (
+							<div className="border border-dashed border-slate-955/10 bg-[#F8FAFE] p-10 text-center">
+								<Building2 className="w-8 h-8 text-slate-300 mx-auto mb-3" />
+								<p className="text-xs text-slate-500 font-sans">
+									Nenhum fornecedor encontrado.
+								</p>
+							</div>
 						) : (
-							<>
-								{paginatedItems.map((item) => {
-									const total = item.quantidade_total_ofertada ?? 0;
-									const saldo = item.quantidade_saldo_disponivel ?? 0;
-									const consumido =
-										total > 0 ? Math.round(((total - saldo) / total) * 100) : 0;
-
-									return (
-										<div
-											key={item.id}
-											className="border border-slate-200 p-4 hover:bg-slate-50/50 transition-colors"
-										>
-											<div className="flex gap-4">
-												<div className="relative shrink-0 w-14 h-14 rounded-lg bg-slate-50 border border-slate-200 overflow-hidden flex items-center justify-center shadow-sm">
-													<div className="absolute inset-0 flex items-center justify-center">
-														<Package className="w-5 h-5 text-slate-300" />
-													</div>
-													{item.url_imagem && (
-														<img
-															src={item.url_imagem}
-															alt={
-																item.descricao_especificacao
-																	? `Imagem do item ${item.descricao_especificacao}`
-																	: "Imagem do item"
-															}
-															className="relative z-10 w-full h-full object-cover"
-															onError={(e) => {
-																e.currentTarget.style.display = "none";
-															}}
-														/>
-													)}
-												</div>
-												<div className="flex-1 min-w-0">
-													<h3 className="font-semibold text-slate-900">
-														Item {item.numero_item}
-													</h3>
-													<p className="text-sm text-slate-500 truncate">
-														{item.descricao_especificacao}
-													</p>
-													{item.marca_modelo && (
-														<p className="text-xs text-slate-400 mt-0.5">
-															{item.marca_modelo}
-														</p>
-													)}
-													<div className="grid grid-cols-2 gap-x-4 gap-y-1 mt-3 text-sm">
-														<div>
-															<span className="text-slate-400">
-																Oferta Total:
-															</span>{" "}
-															<strong>{total}</strong>
-														</div>
-														<div>
-															<span className="text-slate-400">
-																Saldo Disponível:
-															</span>{" "}
-															<strong className="text-emerald-600">
-																{saldo}
-															</strong>
-														</div>
-														<div>
-															<span className="text-slate-400">
-																Valor Unitário:
-															</span>{" "}
-															<strong>R$ {item.valor_unitario}</strong>
-														</div>
-														<div>
-															<span className="text-slate-400">Ata:</span>{" "}
-															<strong>{item.ata?.numero_ata}</strong>
-														</div>
-													</div>
-													{total > 0 && (
-														<div className="mt-2">
-															<BalanceProgressBar percentage={consumido} />
-														</div>
-													)}
-												</div>
-											</div>
-										</div>
-									);
-								})}
-								{filteredItems.length > 3 && (
-									<div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-slate-955/10">
-										<span className="text-xs text-slate-500 font-sans order-2 sm:order-1">
-											{filteredItems.length} item
-											{filteredItems.length !== 1 ? "ns" : ""} encontrado
-											{filteredItems.length !== 1 ? "s" : ""}
+							<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+								{filteredSuppliers.map((s) => (
+									<button
+										type="button"
+										key={s.id}
+										onClick={() => setSelectedSupplierId(s.id)}
+										className="border border-slate-955/10 bg-white p-4 text-left hover:border-blue-600 hover:shadow-sm transition cursor-pointer group"
+									>
+										<span className="text-xs font-bold font-sans text-slate-900 group-hover:text-blue-600 transition block truncate">
+											{s.razao_social}
 										</span>
-										<div className="flex items-center gap-1 order-1 sm:order-2 flex-wrap justify-center">
-											<button
-												onClick={prevPage}
-												disabled={!hasPrev}
-												className="inline-flex items-center justify-center gap-1 h-8 px-2.5 text-xs font-medium font-sans border border-slate-955/10 bg-white text-slate-600 hover:bg-slate-50 transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-											>
-												<ChevronLeft className="w-3.5 h-3.5 shrink-0" />
-												<span>Anterior</span>
-											</button>
-											{(() => {
-												const pages = getPageNumbers(currentPage, totalPages);
-												let ellipsisCount = 0;
-												return pages.map((p) => {
-													if (p === "ellipsis") {
-														ellipsisCount++;
-														return (
-															<span
-																key={`ellipsis-${ellipsisCount}`}
-																className="inline-flex items-center justify-center w-8 h-8 text-xs text-slate-400 font-sans select-none"
-															>
-																...
-															</span>
-														);
-													}
-													return (
-														<button
-															key={`page-${p}`}
-															onClick={() => goToPage(p)}
-															className={`inline-flex items-center justify-center min-w-8 h-8 px-2.5 text-xs font-medium font-sans border transition cursor-pointer ${p === currentPage ? "bg-slate-955 text-white border-slate-955" : "border-slate-955/10 bg-white text-slate-600 hover:bg-slate-50"}`}
-														>
-															{p}
-														</button>
-													);
-												});
-											})()}
-											<button
-												onClick={nextPage}
-												disabled={!hasNext}
-												className="inline-flex items-center justify-center gap-1 h-8 px-2.5 text-xs font-medium font-sans border border-slate-955/10 bg-white text-slate-600 hover:bg-slate-50 transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-											>
-												<span>Próximo</span>
-												<ChevronRight className="w-3.5 h-3.5 shrink-0" />
-											</button>
+										<span className="text-[10px] font-sans text-slate-500 block mt-0.5">
+											{s.cnpj}
+										</span>
+										<div className="flex items-center gap-3 mt-2 text-[9px] text-slate-400 font-sans">
+											{s.email && (
+												<span className="flex items-center gap-1 truncate">
+													<Mail className="w-3 h-3 shrink-0" />
+													<span className="truncate">{s.email}</span>
+												</span>
+											)}
+											{s.telefone && (
+												<span className="flex items-center gap-1 shrink-0">
+													<Phone className="w-3 h-3" />
+													{s.telefone}
+												</span>
+											)}
 										</div>
-									</div>
-								)}
-							</>
+										{s.nome_representante && (
+											<span className="flex items-center gap-1 text-[9px] text-slate-400 font-sans mt-1">
+												<User className="w-3 h-3 shrink-0" />
+												<span className="truncate">{s.nome_representante}</span>
+											</span>
+										)}
+									</button>
+								))}
+							</div>
 						)}
+					</>
+				)}
+
+				{/* Selected supplier data or regular user data */}
+				{selectedSupplierId && isAdminViewing && (
+					<div>
+						<button
+							type="button"
+							onClick={() => setSelectedSupplierId(null)}
+							className="flex items-center gap-1 text-[10px] font-bold font-sans uppercase tracking-wider text-slate-500 hover:text-blue-600 transition cursor-pointer mb-4"
+						>
+							<ChevronLeft className="w-3.5 h-3.5" />
+							Voltar para fornecedores
+						</button>
+
+						{renderBalances()}
 					</div>
 				)}
+
+				{!isAdminViewing && user.fornecedor_id && renderBalances()}
 			</div>
 		</div>
 	);
+
+	function renderBalances() {
+		if (loading) {
+			return (
+				<div className="flex items-center justify-center py-16">
+					<Loader2 className="w-6 h-6 animate-spin text-slate-400" />
+				</div>
+			);
+		}
+
+		if (items.length === 0) {
+			return (
+				<div className="border border-dashed border-slate-955/10 bg-[#F8FAFE] p-10 text-center">
+					<Building2 className="w-8 h-8 text-slate-300 mx-auto mb-3" />
+					<p className="text-xs text-slate-500 font-sans">
+						Nenhum item encontrado.
+					</p>
+				</div>
+			);
+		}
+
+		return (
+			<div className="space-y-3">
+				{items.map((item) => (
+					<div
+						key={item.id}
+						className="border border-slate-955/10 bg-white p-4"
+					>
+						<div className="flex items-start justify-between gap-4">
+							<div className="min-w-0 flex-1">
+								<span className="text-[10px] font-bold text-slate-500 font-sans">
+									Item {item.numero_item}
+								</span>
+								<p className="text-xs text-slate-900 font-sans mt-0.5">
+									{item.descricao_especificacao}
+								</p>
+							</div>
+							<span className="text-xs font-bold font-sans text-slate-900 shrink-0">
+								R${" "}
+								{Number(item.valor_unitario).toLocaleString("pt-BR", {
+									minimumFractionDigits: 2,
+								})}
+							</span>
+						</div>
+						<div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3 text-[10px] font-sans text-slate-500">
+							<div>
+								<span className="block text-[9px] font-bold uppercase tracking-wider text-slate-400">
+									Oferta Total
+								</span>
+								<span className="text-slate-900">
+									{Number(item.quantidade_total_ofertada ?? 0).toLocaleString(
+										"pt-BR",
+									)}
+								</span>
+							</div>
+							<div>
+								<span className="block text-[9px] font-bold uppercase tracking-wider text-slate-400">
+									Saldo Disponível
+								</span>
+								<span className="text-slate-900">
+									{Number(item.quantidade_saldo_disponivel ?? 0).toLocaleString(
+										"pt-BR",
+									)}
+								</span>
+							</div>
+							<div>
+								<span className="block text-[9px] font-bold uppercase tracking-wider text-slate-400">
+									Unidade
+								</span>
+								<span className="text-slate-900">
+									{item.unidade_medida || "—"}
+								</span>
+							</div>
+							<div>
+								<span className="block text-[9px] font-bold uppercase tracking-wider text-slate-400">
+									ATA
+								</span>
+								<span className="text-slate-900">
+									{item.ata?.numero_ata || "—"}
+								</span>
+							</div>
+						</div>
+					</div>
+				))}
+			</div>
+		);
+	}
 }
