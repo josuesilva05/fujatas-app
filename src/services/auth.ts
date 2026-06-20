@@ -1,15 +1,6 @@
 import axios from "axios";
+import type { LoginResponse, UserSession } from "@/types/auth";
 import { api } from "./api";
-
-export interface LoginResponse {
-	access_token: string;
-	token_type: string;
-	id: string;
-	email: string;
-	papel: string;
-	orgao_id: string | null;
-	fornecedor_id: string | null;
-}
 
 export async function loginWithJson(
 	email: string,
@@ -30,14 +21,6 @@ export async function loginWithJson(
 		}
 		throw new Error("Não foi possível conectar ao servidor BIAP.");
 	}
-}
-
-export interface UserSession {
-	id: string;
-	email: string;
-	papel: string;
-	orgao_id: string | null;
-	fornecedor_id: string | null;
 }
 
 export async function getMe(): Promise<UserSession> {

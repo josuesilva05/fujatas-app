@@ -1,43 +1,25 @@
 import type { SupplierBalance, SupplierOrder } from "@/types/supplier";
 import { api } from "./api";
 
+function extractArray<T>(data: unknown): T[] {
+	if (Array.isArray(data)) return data as T[];
+	if (data && typeof data === "object" && "content" in data) {
+		const obj = data as { content: unknown };
+		if (Array.isArray(obj.content)) return obj.content as T[];
+	}
+	return [];
+}
+
 export async function getSupplierBalances(
 	supplierId: string,
 ): Promise<SupplierBalance[]> {
-	try {
-		const url = `/suppliers/${supplierId}/items`;
-
-		console.log("URL BALANCES:", url);
-
-		const response = await api.get(url);
-
-		console.log("BALANCES RESPONSE:", response);
-
-		return response.data;
-	} catch (error: unknown) {
-		console.error("BALANCES ERROR:", error);
-
-		const axiosErr = error as {
-			response?: { status?: number; data?: unknown };
-		};
-		if (axiosErr.response) {
-			console.error("STATUS:", axiosErr.response.status);
-			console.error("DATA:", axiosErr.response.data);
-		}
-
-		throw error;
-	}
+	const response = await api.get(`/suppliers/${supplierId}/items`);
+	return extractArray<SupplierBalance>(response.data);
 }
 
 export async function getSupplierOrders(
 	supplierId: string,
 ): Promise<SupplierOrder[]> {
-	try {
-		const response = await api.get(`/suppliers/${supplierId}/orders`);
-
-		return response.data;
-	} catch (error) {
-		console.error(error);
-		throw error;
-	}
+	const response = await api.get(`/suppliers/${supplierId}/orders`);
+	return extractArray<SupplierOrder>(response.data);
 }
