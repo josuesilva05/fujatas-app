@@ -198,37 +198,37 @@ export default function SupplierSales({ user }: SupplierSalesProps) {
 											<Link to={`/${role}/saldos`}>Itens Ativos</Link>
 										</BreadcrumbLink>
 									</BreadcrumbItem>
-									<BreadcrumbSeparator />
-									<BreadcrumbItem>
-										{selectedSupplierId ? (
-											<BreadcrumbLink
-												asChild
-												className="text-[10px] font-semibold tracking-wider uppercase hover:text-slate-700"
-											>
-												<button
-													type="button"
-													onClick={() => setSelectedSupplierId(null)}
-													className="cursor-pointer"
-												>
-													Fornecedores
-												</button>
-											</BreadcrumbLink>
-										) : (
-											<BreadcrumbPage className="text-[10px] font-semibold tracking-wider uppercase">
-												Fornecedores
-											</BreadcrumbPage>
-										)}
-									</BreadcrumbItem>
-									{selectedSupplierId && (
+									{isAdminViewing && (
 										<>
 											<BreadcrumbSeparator />
 											<BreadcrumbItem>
-												<BreadcrumbPage className="text-[10px] font-semibold tracking-wider uppercase">
-													Notificações
-												</BreadcrumbPage>
+												{selectedSupplierId ? (
+													<BreadcrumbLink
+														asChild
+														className="text-[10px] font-semibold tracking-wider uppercase hover:text-slate-700"
+													>
+														<button
+															type="button"
+															onClick={() => setSelectedSupplierId(null)}
+															className="cursor-pointer"
+														>
+															Fornecedores
+														</button>
+													</BreadcrumbLink>
+												) : (
+													<BreadcrumbPage className="text-[10px] font-semibold tracking-wider uppercase">
+														Fornecedores
+													</BreadcrumbPage>
+												)}
 											</BreadcrumbItem>
 										</>
 									)}
+									<BreadcrumbSeparator />
+									<BreadcrumbItem>
+										<BreadcrumbPage className="text-[10px] font-semibold tracking-wider uppercase">
+											Notificações
+										</BreadcrumbPage>
+									</BreadcrumbItem>
 								</BreadcrumbList>
 							</Breadcrumb>
 						</div>
