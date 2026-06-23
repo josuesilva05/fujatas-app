@@ -253,14 +253,14 @@ export default function SupplierSales({ user }: SupplierSalesProps) {
 				{/* Admin: supplier list */}
 				{isAdminViewing && !selectedSupplierId && (
 					<>
-						<div className="relative max-w-xs">
-							<Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
+						<div className="relative w-full max-w-md">
+							<Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" />
 							<input
 								type="text"
 								value={supplierQ}
 								onChange={(e) => handleSupplierSearchChange(e.target.value)}
 								placeholder="Buscar fornecedor..."
-								className="w-full bg-[#F4F7FA]/50 border border-slate-955/10 pl-9 pr-3 py-1.5 text-xs font-sans text-slate-900 placeholder:text-slate-400 focus:outline-none focus-visible:ring-1 focus-visible:ring-blue-600"
+								className="w-full bg-[#F4F7FA]/50 border border-slate-955/10 pl-10 pr-4 py-2.5 text-sm font-sans text-slate-900 placeholder:text-slate-400 focus:outline-none focus-visible:ring-1 focus-visible:ring-blue-600"
 							/>
 						</div>
 
@@ -425,10 +425,10 @@ export default function SupplierSales({ user }: SupplierSalesProps) {
 							>
 								<div className="flex justify-between items-start border-b border-slate-955/10 pb-3 mb-3">
 									<div>
-										<h3 className="font-semibold text-slate-900">
+										<h3 className="font-semibold text-slate-900 text-sm">
 											{order.orgao_comprador?.nome}
 										</h3>
-										<p className="text-xs text-slate-500">
+										<p className="text-xs text-slate-500 mt-0.5">
 											{order.orgao_comprador?.cnpj}
 										</p>
 									</div>
@@ -437,14 +437,14 @@ export default function SupplierSales({ user }: SupplierSalesProps) {
 											STATUS_STYLES[order.status] || STATUS_STYLES.PENDENTE;
 										return (
 											<span
-												className={`text-[9px] font-bold font-sans uppercase tracking-wider px-2 py-0.5 border ${s.color} ${s.bg} ${s.border}`}
+												className={`text-[10px] font-bold font-sans uppercase tracking-wider px-2 py-0.5 border ${s.color} ${s.bg} ${s.border}`}
 											>
 												{s.label}
 											</span>
 										);
 									})()}
 								</div>
-								<div className="grid grid-cols-2 gap-4 text-xs text-slate-500">
+								<div className="grid grid-cols-2 gap-4 text-sm text-slate-500">
 									<div>
 										<strong>Tipo:</strong> {order.tipo_adesao}
 									</div>
@@ -463,51 +463,55 @@ export default function SupplierSales({ user }: SupplierSalesProps) {
 						))}
 					</div>
 
-					<div className="lg:col-span-4 bg-[#F8FAFE] border border-slate-955/10 p-5 space-y-5">
-						<span className="text-[10px] font-sans font-bold tracking-wider text-slate-500 block border-b border-slate-955/10 pb-2 uppercase">
-							§ FATURAMENTO E LOGÍSTICA
-						</span>
-						<div className="space-y-4 font-sans text-xs text-slate-500">
-							<p className="leading-relaxed text-xs">
-								O trâmite logístico exige a associação da chave de acesso ou
-								número da NF-e para liberação do pagamento financeiro pela
-								administração pública.
-							</p>
-							<div className="border border-slate-955/10 p-4 bg-[#F4F7FA]/50 space-y-2">
-								<div className="flex justify-between items-center">
-									<span className="font-semibold text-slate-700">
-										Total de Pedidos
-									</span>
-									<strong className="text-base font-bold text-slate-955">
-										{totalItems}
-									</strong>
-								</div>
-								<div className="border-t border-slate-955/5 pt-2 space-y-1.5">
-									<div className="flex justify-between items-center">
-										<span className="flex items-center gap-1.5 text-xs text-amber-800">
-											<span className="w-1.5 h-1.5 bg-amber-400" />
-											Pendentes
-										</span>
-										<strong className="text-amber-800">
-											{orders.filter((o) => o.status === "PENDENTE").length}
-										</strong>
-									</div>
-									<div className="flex justify-between items-center">
-										<span className="flex items-center gap-1.5 text-xs text-emerald-800">
-											<span className="w-1.5 h-1.5 bg-emerald-400" />
-											Autorizados
-										</span>
-										<strong className="text-emerald-800">
-											{orders.filter((o) => o.status === "AUTORIZADO").length}
-										</strong>
-									</div>
-								</div>
-							</div>
-							<div className="border border-slate-955/10 p-4 bg-[#F4F7FA]/50">
-								<p className="font-bold text-[10px] uppercase tracking-wide mb-2">
-									Última atualização
+					<div className="lg:col-span-4 space-y-5">
+						<div className="bg-white border border-slate-955/10 p-5 space-y-5">
+							<span className="text-xs font-sans font-bold tracking-wider text-slate-500 block border-b border-slate-955/10 pb-3 uppercase">
+								§ FATURAMENTO E LOGÍSTICA
+							</span>
+							<div className="space-y-4 font-sans text-xs text-slate-500">
+								<p className="leading-relaxed text-xs text-slate-600">
+									O trâmite logístico exige a associação da chave de acesso ou
+									número da NF-e para liberação do pagamento financeiro pela
+									administração pública.
 								</p>
-								<p>{new Date().toLocaleString("pt-BR")}</p>
+								<div className="border border-slate-955/10 p-4 bg-[#F4F7FA]/50 space-y-2">
+									<div className="flex justify-between items-center">
+										<span className="font-semibold text-slate-700 text-xs">
+											Total de Pedidos
+										</span>
+										<strong className="text-sm font-bold text-slate-955">
+											{totalItems}
+										</strong>
+									</div>
+									<div className="border-t border-slate-955/5 pt-2 space-y-1.5">
+										<div className="flex justify-between items-center">
+											<span className="flex items-center gap-1.5 text-xs text-amber-800">
+												<span className="w-1.5 h-1.5 bg-amber-400" />
+												Pendentes
+											</span>
+											<strong className="text-amber-800">
+												{orders.filter((o) => o.status === "PENDENTE").length}
+											</strong>
+										</div>
+										<div className="flex justify-between items-center">
+											<span className="flex items-center gap-1.5 text-xs text-emerald-800">
+												<span className="w-1.5 h-1.5 bg-emerald-400" />
+												Autorizados
+											</span>
+											<strong className="text-emerald-800">
+												{orders.filter((o) => o.status === "AUTORIZADO").length}
+											</strong>
+										</div>
+									</div>
+								</div>
+								<div className="border border-slate-955/10 p-4 bg-[#F4F7FA]/50">
+									<p className="font-bold text-xs uppercase tracking-wide mb-2 text-slate-600">
+										Última atualização
+									</p>
+									<p className="text-xs text-slate-900">
+										{new Date().toLocaleString("pt-BR")}
+									</p>
+								</div>
 							</div>
 						</div>
 					</div>
