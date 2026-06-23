@@ -418,49 +418,69 @@ export default function SupplierSales({ user }: SupplierSalesProps) {
 			<>
 				<div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 					<div className="lg:col-span-8 space-y-4">
-						{orders.map((order) => (
+						{orders.map((order) => {
+							const orderDate = new Date(order.data_pedido).toLocaleDateString("pt-BR");
+							const s = STATUS_STYLES[order.status] || STATUS_STYLES.PENDENTE;
+							return (
 							<div
 								key={order.id}
-								className="border border-slate-955/10 bg-white p-4"
+								className="border border-slate-955/10 bg-white p-4 hover:border-blue-600 hover:shadow-sm transition"
 							>
 								<div className="flex justify-between items-start border-b border-slate-955/10 pb-3 mb-3">
-									<div>
-										<h3 className="font-semibold text-slate-900 text-sm">
-											{order.orgao_comprador?.nome}
-										</h3>
-										<p className="text-xs text-slate-500 mt-0.5">
-											{order.orgao_comprador?.cnpj}
-										</p>
+									<div className="flex items-center gap-2">
+										<span className={`w-2 h-2 rounded-full inline-block ${s.color.replace("text-", "bg-").replace("800", "500")}`} />
+										<div>
+											<h3 className="font-semibold text-slate-900 text-sm">
+												{order.orgao_comprador?.nome}
+											</h3>
+											<p className="text-xs text-slate-500 mt-0.5">
+												{order.orgao_comprador?.cnpj}
+											</p>
+										</div>
 									</div>
-									{(() => {
-										const s =
-											STATUS_STYLES[order.status] || STATUS_STYLES.PENDENTE;
-										return (
-											<span
-												className={`text-[10px] font-bold font-sans uppercase tracking-wider px-2 py-0.5 border ${s.color} ${s.bg} ${s.border}`}
-											>
-												{s.label}
-											</span>
-										);
-									})()}
+									<span
+										className={`text-[10px] font-bold font-sans uppercase tracking-wider px-2 py-0.5 border shrink-0 ${s.color} ${s.bg} ${s.border}`}
+									>
+										{s.label}
+									</span>
 								</div>
-								<div className="grid grid-cols-2 gap-4 text-sm text-slate-500">
+								<div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
 									<div>
-										<strong>Tipo:</strong> {order.tipo_adesao}
+										<span className="block text-[9px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">
+											Tipo
+										</span>
+										<span className={`text-sm font-medium ${order.tipo_adesao === "DIRETA" ? "text-blue-700" : "text-amber-700"}`}>
+											{order.tipo_adesao}
+										</span>
 									</div>
 									<div>
-										<strong>Itens:</strong> {order.itens?.length ?? 0}
+										<span className="block text-[9px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">
+											Itens
+										</span>
+										<span className="text-sm text-slate-900 font-medium">
+											{order.itens?.length ?? 0}
+										</span>
 									</div>
 									<div>
-										<strong>Data:</strong>{" "}
-										{new Date(order.data_pedido).toLocaleDateString("pt-BR")}
+										<span className="block text-[9px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">
+											Data
+										</span>
+										<span className="text-sm text-slate-900 font-medium">
+											{orderDate}
+										</span>
 									</div>
 									<div>
-										<strong>ID:</strong> {order.id.slice(0, 8)}
+										<span className="block text-[9px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">
+											ID
+										</span>
+										<span className="text-sm text-slate-500 font-mono">
+											#{order.id.slice(0, 8)}
+										</span>
 									</div>
 								</div>
 							</div>
-						))}
+							);
+						})}
 					</div>
 
 					<div className="lg:col-span-4 space-y-5">

@@ -449,10 +449,16 @@ export default function SupplierBalances({ user }: SupplierBalancesProps) {
 					</div>
 				) : showItems ? (
 					<div className="space-y-3">
-						{filteredItems.map((item) => (
+						{filteredItems.map((item) => {
+							const total = Number(item.quantidade_total_ofertada ?? 0);
+							const saldo = Number(item.quantidade_saldo_disponivel ?? 0);
+							const pct = total > 0 ? Math.round((saldo / total) * 100) : 0;
+							const saldoColor = pct > 50 ? "text-emerald-600" : pct > 20 ? "text-amber-600" : "text-red-600";
+							const barColor = pct > 50 ? "bg-emerald-500" : pct > 20 ? "bg-amber-400" : "bg-red-400";
+							return (
 							<div
 								key={item.id}
-								className="border border-slate-955/10 bg-white p-4"
+								className="border border-slate-955/10 bg-white p-4 hover:border-blue-600 hover:shadow-sm transition cursor-pointer"
 							>
 								<div className="flex gap-4">
 									<div className="relative shrink-0 w-20 h-20 rounded-lg bg-slate-50 border border-slate-200 overflow-hidden shadow-sm">
@@ -464,7 +470,7 @@ export default function SupplierBalances({ user }: SupplierBalancesProps) {
 									<div className="min-w-0 flex-1">
 										<div className="flex items-start justify-between gap-4">
 											<div>
-												<span className="text-xs font-bold text-slate-500 font-sans">
+												<span className="text-xs font-bold text-slate-500 font-sans uppercase tracking-wider">
 													Item {item.numero_item}
 												</span>
 												<p className="text-sm text-slate-900 font-sans mt-0.5">
@@ -483,27 +489,23 @@ export default function SupplierBalances({ user }: SupplierBalancesProps) {
 												<span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">
 													Oferta Total
 												</span>
-												<span className="text-slate-900">
-													{Number(
-														item.quantidade_total_ofertada ?? 0,
-													).toLocaleString("pt-BR")}
+												<span className="text-slate-900 font-medium">
+													{total.toLocaleString("pt-BR")}
 												</span>
 											</div>
 											<div>
 												<span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">
 													Saldo Disponível
 												</span>
-												<span className="text-slate-900">
-													{Number(
-														item.quantidade_saldo_disponivel ?? 0,
-													).toLocaleString("pt-BR")}
+												<span className={`font-medium ${saldoColor}`}>
+													{saldo.toLocaleString("pt-BR")}
 												</span>
 											</div>
 											<div>
 												<span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">
 													Unidade
 												</span>
-												<span className="text-slate-900">
+												<span className="text-slate-900 font-medium">
 													{item.unidade_medida || "—"}
 												</span>
 											</div>
@@ -511,15 +513,32 @@ export default function SupplierBalances({ user }: SupplierBalancesProps) {
 												<span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">
 													ATA
 												</span>
-												<span className="text-slate-900">
+												<span className="text-slate-900 font-medium">
 													{item.ata?.numero_ata || "—"}
 												</span>
+											</div>
+										</div>
+										<div className="mt-3">
+											<div className="flex justify-between items-center mb-1">
+												<span className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
+													Saldo
+												</span>
+												<span className={`text-[9px] font-bold ${saldoColor}`}>
+													{pct}%
+												</span>
+											</div>
+											<div className="h-1.5 bg-slate-100 w-full">
+												<div
+													className={`h-full transition-all duration-700 ${barColor}`}
+													style={{ width: `${Math.min(pct, 100)}%` }}
+												/>
 											</div>
 										</div>
 									</div>
 								</div>
 							</div>
-						))}
+							);
+						})}
 					</div>
 				) : showEmptySearch ? (
 					<div className="border border-dashed border-slate-955/10 bg-[#F8FAFE] p-10 text-center">
