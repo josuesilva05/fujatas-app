@@ -204,57 +204,34 @@ export default function SupplierBalances({ user }: SupplierBalancesProps) {
 							</h2>
 							<Breadcrumb className="mt-4">
 								<BreadcrumbList>
-									{isAdminViewing ? (
-										<>
-											<BreadcrumbItem>
-												{selectedSupplierId ? (
-													<BreadcrumbLink
-														asChild
-														className="text-[10px] font-semibold tracking-wider uppercase hover:text-slate-700"
-													>
-														<button
-															type="button"
-															onClick={() => {
-																setSelectedSupplierId(null);
-																setPage(1);
-															}}
-															className="cursor-pointer"
-														>
-															Fornecedores
-														</button>
-													</BreadcrumbLink>
-												) : (
-													<BreadcrumbPage className="text-[10px] font-semibold tracking-wider uppercase">
-														Fornecedores
-													</BreadcrumbPage>
-												)}
-											</BreadcrumbItem>
-											{selectedSupplierId && (
-												<>
-													<BreadcrumbSeparator />
-													<BreadcrumbItem>
-														<BreadcrumbPage className="text-[10px] font-semibold tracking-wider uppercase">
-															Itens Ativos
-														</BreadcrumbPage>
-													</BreadcrumbItem>
-												</>
-											)}
-										</>
-									) : (
-										<BreadcrumbItem>
+									<BreadcrumbItem>
+										{isAdminViewing && selectedSupplierId ? (
+											<BreadcrumbLink
+												asChild
+												className="text-[10px] font-semibold tracking-wider uppercase hover:text-slate-700"
+											>
+												<button
+													type="button"
+													onClick={() => {
+														setSelectedSupplierId(null);
+														setPage(1);
+													}}
+													className="cursor-pointer"
+												>
+													Fornecedores
+												</button>
+											</BreadcrumbLink>
+										) : (
 											<BreadcrumbPage className="text-[10px] font-semibold tracking-wider uppercase">
-												Itens Ativos
+												Fornecedores
 											</BreadcrumbPage>
-										</BreadcrumbItem>
-									)}
+										)}
+									</BreadcrumbItem>
 									<BreadcrumbSeparator />
 									<BreadcrumbItem>
-										<BreadcrumbLink
-											asChild
-											className="text-[10px] font-semibold tracking-wider uppercase hover:text-slate-700"
-										>
-											<Link to={`/${role}/vendas`}>Notificações</Link>
-										</BreadcrumbLink>
+										<BreadcrumbPage className="text-[10px] font-semibold tracking-wider uppercase">
+											Itens Ativos
+										</BreadcrumbPage>
 									</BreadcrumbItem>
 								</BreadcrumbList>
 							</Breadcrumb>
@@ -450,93 +427,106 @@ export default function SupplierBalances({ user }: SupplierBalancesProps) {
 				) : showItems ? (
 					<div className="space-y-3">
 						{filteredItems.map((item) => {
+							console.log("url_imagem:", item.url_imagem);
 							const total = Number(item.quantidade_total_ofertada ?? 0);
 							const saldo = Number(item.quantidade_saldo_disponivel ?? 0);
 							const pct = total > 0 ? Math.round((saldo / total) * 100) : 0;
-							const saldoColor = pct > 50 ? "text-emerald-600" : pct > 20 ? "text-amber-600" : "text-red-600";
-							const barColor = pct > 50 ? "bg-emerald-500" : pct > 20 ? "bg-amber-400" : "bg-red-400";
+							const saldoColor =
+								pct > 50
+									? "text-emerald-600"
+									: pct > 20
+										? "text-amber-600"
+										: "text-red-600";
+							const barColor =
+								pct > 50
+									? "bg-emerald-500"
+									: pct > 20
+										? "bg-amber-400"
+										: "bg-red-400";
 							return (
-							<div
-								key={item.id}
-								className="border border-slate-955/10 bg-white p-4 hover:border-blue-600 hover:shadow-sm transition cursor-pointer"
-							>
-								<div className="flex gap-4">
-									<div className="relative shrink-0 w-20 h-20 rounded-lg bg-slate-50 border border-slate-200 overflow-hidden shadow-sm">
-										<ItemImage
-											url={item.url_imagem}
-											alt={item.descricao_especificacao}
-										/>
-									</div>
-									<div className="min-w-0 flex-1">
-										<div className="flex items-start justify-between gap-4">
-											<div>
-												<span className="text-xs font-bold text-slate-500 font-sans uppercase tracking-wider">
-													Item {item.numero_item}
-												</span>
-												<p className="text-sm text-slate-900 font-sans mt-0.5">
-													{item.descricao_especificacao}
-												</p>
-											</div>
-											<span className="text-sm font-bold font-sans text-slate-900 shrink-0 whitespace-nowrap">
-												R${" "}
-												{Number(item.valor_unitario).toLocaleString("pt-BR", {
-													minimumFractionDigits: 2,
-												})}
-											</span>
+								<div
+									key={item.id}
+									className="border border-slate-955/10 bg-white p-4 hover:border-blue-600 hover:shadow-sm transition cursor-pointer"
+								>
+									<div className="flex gap-4">
+										<div className="relative shrink-0 w-20 h-20 rounded-lg bg-slate-50 border border-slate-200 overflow-hidden shadow-sm">
+											<ItemImage
+												url={item.url_imagem}
+												alt={item.descricao_especificacao}
+											/>
 										</div>
-										<div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3 text-xs font-sans text-slate-500">
-											<div>
-												<span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">
-													Oferta Total
-												</span>
-												<span className="text-slate-900 font-medium">
-													{total.toLocaleString("pt-BR")}
-												</span>
-											</div>
-											<div>
-												<span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">
-													Saldo Disponível
-												</span>
-												<span className={`font-medium ${saldoColor}`}>
-													{saldo.toLocaleString("pt-BR")}
-												</span>
-											</div>
-											<div>
-												<span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">
-													Unidade
-												</span>
-												<span className="text-slate-900 font-medium">
-													{item.unidade_medida || "—"}
+										<div className="min-w-0 flex-1">
+											<div className="flex items-start justify-between gap-4">
+												<div>
+													<span className="text-xs font-bold text-slate-500 font-sans uppercase tracking-wider">
+														Item {item.numero_item}
+													</span>
+													<p className="text-sm text-slate-900 font-sans mt-0.5">
+														{item.descricao_especificacao}
+													</p>
+												</div>
+												<span className="text-sm font-bold font-sans text-slate-900 shrink-0 whitespace-nowrap">
+													R${" "}
+													{Number(item.valor_unitario).toLocaleString("pt-BR", {
+														minimumFractionDigits: 2,
+													})}
 												</span>
 											</div>
-											<div>
-												<span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">
-													ATA
-												</span>
-												<span className="text-slate-900 font-medium">
-													{item.ata?.numero_ata || "—"}
-												</span>
+											<div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3 text-xs font-sans text-slate-500">
+												<div>
+													<span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">
+														Oferta Total
+													</span>
+													<span className="text-slate-900 font-medium">
+														{total.toLocaleString("pt-BR")}
+													</span>
+												</div>
+												<div>
+													<span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">
+														Saldo Disponível
+													</span>
+													<span className={`font-medium ${saldoColor}`}>
+														{saldo.toLocaleString("pt-BR")}
+													</span>
+												</div>
+												<div>
+													<span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">
+														Unidade
+													</span>
+													<span className="text-slate-900 font-medium">
+														{item.unidade_medida || "—"}
+													</span>
+												</div>
+												<div>
+													<span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">
+														ATA
+													</span>
+													<span className="text-slate-900 font-medium">
+														{item.ata?.numero_ata || "—"}
+													</span>
+												</div>
 											</div>
-										</div>
-										<div className="mt-3">
-											<div className="flex justify-between items-center mb-1">
-												<span className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
-													Saldo
-												</span>
-												<span className={`text-[9px] font-bold ${saldoColor}`}>
-													{pct}%
-												</span>
-											</div>
-											<div className="h-1.5 bg-slate-100 w-full">
-												<div
-													className={`h-full transition-all duration-700 ${barColor}`}
-													style={{ width: `${Math.min(pct, 100)}%` }}
-												/>
+											<div className="mt-3">
+												<div className="flex justify-between items-center mb-1">
+													<span className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
+														Saldo
+													</span>
+													<span
+														className={`text-[9px] font-bold ${saldoColor}`}
+													>
+														{pct}%
+													</span>
+												</div>
+												<div className="h-1.5 bg-slate-100 w-full">
+													<div
+														className={`h-full transition-all duration-700 ${barColor}`}
+														style={{ width: `${Math.min(pct, 100)}%` }}
+													/>
+												</div>
 											</div>
 										</div>
 									</div>
 								</div>
-							</div>
 							);
 						})}
 					</div>

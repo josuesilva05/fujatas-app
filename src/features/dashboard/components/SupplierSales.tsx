@@ -191,38 +191,25 @@ export default function SupplierSales({ user }: SupplierSalesProps) {
 							<Breadcrumb className="mt-4">
 								<BreadcrumbList>
 									<BreadcrumbItem>
-										<BreadcrumbLink
-											asChild
-											className="text-[10px] font-semibold tracking-wider uppercase hover:text-slate-700"
-										>
-											<Link to={`/${role}/saldos`}>Itens Ativos</Link>
-										</BreadcrumbLink>
+										{isAdminViewing && selectedSupplierId ? (
+											<BreadcrumbLink
+												asChild
+												className="text-[10px] font-semibold tracking-wider uppercase hover:text-slate-700"
+											>
+												<button
+													type="button"
+													onClick={() => setSelectedSupplierId(null)}
+													className="cursor-pointer"
+												>
+													Fornecedores
+												</button>
+											</BreadcrumbLink>
+										) : (
+											<BreadcrumbPage className="text-[10px] font-semibold tracking-wider uppercase">
+												Fornecedores
+											</BreadcrumbPage>
+										)}
 									</BreadcrumbItem>
-									{isAdminViewing && (
-										<>
-											<BreadcrumbSeparator />
-											<BreadcrumbItem>
-												{selectedSupplierId ? (
-													<BreadcrumbLink
-														asChild
-														className="text-[10px] font-semibold tracking-wider uppercase hover:text-slate-700"
-													>
-														<button
-															type="button"
-															onClick={() => setSelectedSupplierId(null)}
-															className="cursor-pointer"
-														>
-															Fornecedores
-														</button>
-													</BreadcrumbLink>
-												) : (
-													<BreadcrumbPage className="text-[10px] font-semibold tracking-wider uppercase">
-														Fornecedores
-													</BreadcrumbPage>
-												)}
-											</BreadcrumbItem>
-										</>
-									)}
 									<BreadcrumbSeparator />
 									<BreadcrumbItem>
 										<BreadcrumbPage className="text-[10px] font-semibold tracking-wider uppercase">
