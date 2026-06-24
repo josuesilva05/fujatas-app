@@ -1,14 +1,21 @@
 import type {
+	AtaAuditLogEntry,
 	AtaCreatePayload,
 	AtaDetailResponse,
+	AtaMonitorPageResponse,
 	AtaMonitorResponse,
 	AtaResponse,
+	AtaStatusUpdatePayload,
+	AtaUpdatePayload,
 	ItemSearchPageResponse,
 	SearchItemsParams,
 	VwSaldoItemAtaResponse,
 } from "@/types/ata";
 import type { FornecedorResponse } from "@/types/supplier";
 import { api } from "./api";
+
+// URL base da API (sem trailing slash)
+const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
 export async function listAtas(skip = 0, limit = 100): Promise<AtaResponse[]> {
 	const response = await api.get<AtaResponse[]>("/atas", {
@@ -64,7 +71,54 @@ export async function createAta(payload: AtaCreatePayload) {
 	return response.data;
 }
 
-export async function getAtaMonitoring(): Promise<AtaMonitorResponse[]> {
-	const response = await api.get<AtaMonitorResponse[]>("/atas/monitoring");
+export async function getAtaMonitoring(
+	skip = 0,
+	limit = 100,
+): Promise<AtaMonitorResponse[]> {
+	const response = await api.get<AtaMonitorPageResponse>("/atas/monitoring", {
+		params: { skip, limit },
+	});
+	// A API retorna objeto paginado — extrai o array de conteúdo
+	return response.data?.content ?? [];
+}
+
+export async function updateAta(
+	id: string,
+	payload: AtaUpdatePayload,
+): Promise<AtaResponse> {
+	const response = await api.patch<AtaResponse>(`/atas/${id}`, payload);
 	return response.data;
+}
+
+export async function updateAtaStatus(
+	id: string,
+	payload: AtaStatusUpdatePayload,
+): Promise<AtaResponse> {
+	const response = await api.patch<AtaResponse>(`/atas/${id}/status`, payload);
+	return response.data;
+}
+
+export async function getAtaAuditLog(id: string): Promise<AtaAuditLogEntry[]> {
+	const response = await api.get<AtaAuditLogEntry[]>(`/atas/${id}/audit-log`);
+	return response.data;
+}
+
+/**
+ * Faz upload de uma imagem de produto para o backend.
+ * Retorna a URL pública completa da imagem (ex: http://localhost:8000/uploads/items/abc123.jpg)
+ */
+export async function uploadItemImage(file: File): Promise<string> {
+	const formData = new FormData();
+	formData.append("file", file);
+
+	const response = await api.post<{ url: string; filename: string }>(
+		"/uploads/image",
+		formData,
+		{
+			headers: { "Content-Type": "multipart/form-data" },
+		},
+	);
+
+	// Montar a URL completa a partir do caminho relativo retornado pelo backend
+	return `${API_BASE_URL}${response.data.url}`;
 }

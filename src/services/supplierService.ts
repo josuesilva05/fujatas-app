@@ -13,7 +13,7 @@ export async function getSupplierBalances(
 
 		console.log("BALANCES RESPONSE:", response);
 
-		return response.data;
+		return response.data?.content || [];
 	} catch (error: unknown) {
 		console.error("BALANCES ERROR:", error);
 
@@ -35,7 +35,7 @@ export async function getSupplierOrders(
 	try {
 		const response = await api.get(`/suppliers/${supplierId}/orders`);
 
-		return response.data;
+		return response.data?.content || [];
 	} catch (error) {
 		console.error(error);
 		throw error;

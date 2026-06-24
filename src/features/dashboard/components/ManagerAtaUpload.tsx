@@ -2,18 +2,24 @@ import {
 	ArrowLeft,
 	ArrowRight,
 	Building2,
+	Calendar as CalendarIcon,
 	Check,
 	ClipboardList,
 	Eye,
+	ImagePlus,
 	Info,
 	Loader2,
 	Package,
 	Plus,
 	Trash2,
+	X,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Button from "@/components/ui/Button";
-import { createAta } from "@/services/atas";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { ptBR } from "date-fns/locale";
+import { createAta, uploadItemImage } from "@/services/atas";
 import { listOrgans } from "@/services/organs";
 import { listSuppliers } from "@/services/suppliers";
 import type { Organ } from "@/types/organ";
@@ -46,6 +52,7 @@ interface ItemForm {
 	descricao_especificacao: string;
 	unidade_medida: string;
 	marca_modelo: string;
+	url_imagem: string;
 	valor_unitario: number;
 	quantidade_manual: number | "";
 	participantes: Participante[];
@@ -77,6 +84,12 @@ const fmtBRL = (v: number) =>
 		v,
 	);
 
+const formatDate = (dateString: string) => {
+	if (!dateString) return "";
+	const [year, month, day] = dateString.split("-");
+	return `${day}/${month}/${year}`;
+};
+
 /* ── Componente Principal ───────────────────────────────── */
 
 export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
@@ -104,11 +117,16 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 			descricao_especificacao: "",
 			unidade_medida: "UN",
 			marca_modelo: "",
+			url_imagem: "",
 			valor_unitario: 0,
 			quantidade_manual: "",
 			participantes: [],
 		},
 	]);
+
+	// Controle de qual item está fazendo upload de imagem (por índice)
+	const [uploadingImageIdx, setUploadingImageIdx] = useState<number | null>(null);
+	const [uploadImageError, setUploadImageError] = useState<string>("");
 
 	// Step 4 — Regras de Carona
 	const [regras, setRegras] = useState<RegraForm[]>([
@@ -121,6 +139,7 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 	const [loadingData, setLoadingData] = useState(true);
 	const [submitting, setSubmitting] = useState(false);
 	const [errorMsg, setErrorMsg] = useState("");
+	const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 	const [successData, setSuccessData] = useState<{
 		id: string;
 		numero_ata: string;
@@ -188,6 +207,11 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 		const u = [...grupos];
 		u[idx] = { ...u[idx], [field]: value };
 		setGrupos(u);
+
+		const errKey = `grupo_${idx}_${field}`;
+		if (fieldErrors[errKey]) {
+			setFieldErrors((p) => ({ ...p, [errKey]: "" }));
+		}
 	};
 
 	/* ── Handlers de Item ────────────────────────────────── */
@@ -203,6 +227,7 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 				descricao_especificacao: "",
 				unidade_medida: "UN",
 				marca_modelo: "",
+				url_imagem: "",
 				valor_unitario: 0,
 				quantidade_manual: "",
 				participantes: [],
@@ -228,6 +253,14 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 			item[field] = value;
 		}
 		setItens(u);
+
+		const errKey = `item_${idx}_${field}`;
+		if (fieldErrors[errKey]) {
+			setFieldErrors((p) => ({ ...p, [errKey]: "" }));
+		}
+		if (field === "quantidade_manual" && fieldErrors[`item_${idx}_quantidade`]) {
+			setFieldErrors((p) => ({ ...p, [`item_${idx}_quantidade`]: "" }));
+		}
 	};
 
 	/* ── Handlers de Participante (sub-tabela dentro do item) */
@@ -272,6 +305,10 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 		} as unknown as Participante;
 		u[itemIdx] = { ...u[itemIdx], participantes: parts };
 		setItens(u);
+
+		if (fieldErrors[`item_${itemIdx}_quantidade`]) {
+			setFieldErrors((p) => ({ ...p, [`item_${itemIdx}_quantidade`]: "" }));
+		}
 	};
 
 	/* ── Handlers de Regras ──────────────────────────────── */
@@ -298,28 +335,136 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 		setRegras(u);
 	};
 
-	/* ── Navegação de Steps ──────────────────────────────── */
+	/* ── Handler de Upload de Imagem ────────────────────── */
 
-	const goNext = () => setCurrentStep((s) => Math.min(s + 1, 4));
-	const goPrev = () => setCurrentStep((s) => Math.max(s - 1, 1));
+	const handleImageUpload = async (idx: number, file: File) => {
+		setUploadImageError("");
+		setUploadingImageIdx(idx);
+		try {
+			const url = await uploadItemImage(file);
+			const u = [...itens];
+			u[idx] = { ...u[idx], url_imagem: url };
+			setItens(u);
+		} catch (err: unknown) {
+			const axiosErr = err as { response?: { data?: { detail?: string } } };
+			const detail = axiosErr.response?.data?.detail || "Erro ao fazer upload da imagem.";
+			setUploadImageError(typeof detail === "string" ? detail : JSON.stringify(detail));
+		} finally {
+			setUploadingImageIdx(null);
+		}
+	};
+
+	/* ── Navegação de Steps com Validação ───────────────── */
+
+	const validateStep = (step: number): boolean => {
+		setErrorMsg("");
+		if (step === 1) {
+			const newFieldErrors: Record<string, string> = {};
+			if (!numeroAta.trim()) newFieldErrors.numeroAta = "Campo obrigatório";
+
+			if (Object.keys(newFieldErrors).length > 0) {
+				setFieldErrors(newFieldErrors);
+				setErrorMsg("Preencha todos os campos obrigatórios marcados na Etapa 1: Dados da ATA.");
+				return false;
+			}
+			setFieldErrors({});
+			return true;
+		}
+
+		if (step === 2) {
+			const newFieldErrors: Record<string, string> = {};
+			if (grupos.length === 0) {
+				setErrorMsg("Adicione pelo menos um Lote/Grupo na Etapa 2.");
+				return false;
+			}
+			for (let i = 0; i < grupos.length; i++) {
+				if (!grupos[i].numero_grupo.trim()) {
+					newFieldErrors[`grupo_${i}_numero_grupo`] = "Código do Lote é obrigatório";
+				}
+			}
+			if (Object.keys(newFieldErrors).length > 0) {
+				setFieldErrors(newFieldErrors);
+				setErrorMsg("Preencha todos os códigos de lote em destaque na Etapa 2.");
+				return false;
+			}
+			setFieldErrors({});
+			return true;
+		}
+
+		if (step === 3) {
+			const newFieldErrors: Record<string, string> = {};
+			if (itens.length === 0) {
+				setErrorMsg("Adicione pelo menos um Item na Etapa 3.");
+				return false;
+			}
+			for (let i = 0; i < itens.length; i++) {
+				const item = itens[i];
+				if (!item.fornecedor_id) {
+					newFieldErrors[`item_${i}_fornecedor_id`] = "Selecione o fornecedor";
+				}
+				if (!item.descricao_especificacao.trim()) {
+					newFieldErrors[`item_${i}_descricao_especificacao`] = "A descrição é obrigatória";
+				}
+				if (item.valor_unitario <= 0) {
+					newFieldErrors[`item_${i}_valor_unitario`] = "Deve ser maior que 0";
+				}
+				const qty = getItemQty(item);
+				if (qty <= 0) {
+					newFieldErrors[`item_${i}_quantidade`] = "Quantidade deve ser maior que 0";
+				}
+			}
+			if (Object.keys(newFieldErrors).length > 0) {
+				setFieldErrors(newFieldErrors);
+				setErrorMsg("Preencha todos os campos obrigatórios em destaque nos itens na Etapa 3.");
+				return false;
+			}
+			setFieldErrors({});
+			return true;
+		}
+
+		return true;
+	};
+
+	const goNext = () => {
+		if (validateStep(currentStep)) {
+			setCurrentStep((s) => Math.min(s + 1, 4));
+			setErrorMsg("");
+		}
+	};
+
+	const goPrev = () => {
+		setCurrentStep((s) => Math.max(s - 1, 1));
+		setErrorMsg("");
+	};
+
+	const handleStepClick = (targetStep: number) => {
+		if (targetStep < currentStep) {
+			setCurrentStep(targetStep);
+			setErrorMsg("");
+			return;
+		}
+		// Validar steps intermediários
+		for (let s = currentStep; s < targetStep; s++) {
+			if (!validateStep(s)) {
+				setCurrentStep(s);
+				return;
+			}
+		}
+		setCurrentStep(targetStep);
+		setErrorMsg("");
+	};
 
 	/* ── Submit ──────────────────────────────────────────── */
 
 	const handleSubmit = async () => {
 		setErrorMsg("");
 
-		if (
-			!numeroAta ||
-			!processoAdm ||
-			!numeroPregao ||
-			!dataAssinatura ||
-			!dataPublicacao
-		) {
-			setErrorMsg(
-				"Por favor, preencha todos os campos obrigatórios da autuação da ATA (Step 1).",
-			);
-			setCurrentStep(1);
-			return;
+		// Validar sequencialmente todas as etapas antes do envio
+		for (let s = 1; s <= 3; s++) {
+			if (!validateStep(s)) {
+				setCurrentStep(s);
+				return;
+			}
 		}
 
 		if (!user.orgao_id) {
@@ -329,39 +474,13 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 			return;
 		}
 
-		for (let i = 0; i < itens.length; i++) {
-			const item = itens[i];
-			if (!item.descricao_especificacao.trim()) {
-				setErrorMsg(
-					`O item ${item.numero_item} está com a descrição em branco.`,
-				);
-				setCurrentStep(3);
-				return;
-			}
-			if (!item.fornecedor_id) {
-				setErrorMsg(
-					`O item ${item.numero_item} exige a seleção de um fornecedor homologado.`,
-				);
-				setCurrentStep(3);
-				return;
-			}
-			const qty = getItemQty(item);
-			if (item.valor_unitario <= 0 || qty <= 0) {
-				setErrorMsg(
-					`O item ${item.numero_item} deve possuir valor unitário e quantidade maiores que zero.`,
-				);
-				setCurrentStep(3);
-				return;
-			}
-		}
-
 		const payload = {
 			numero_ata: numeroAta.trim(),
-			processo_administrativo: processoAdm.trim(),
-			numero_pregao: numeroPregao.trim(),
+			processo_administrativo: processoAdm.trim() || undefined,
+			numero_pregao: numeroPregao.trim() || undefined,
 			orgao_gerenciador_id: user.orgao_id,
-			data_assinatura: dataAssinatura,
-			data_publicacao: dataPublicacao,
+			data_assinatura: dataAssinatura || undefined,
+			data_publicacao: dataPublicacao || undefined,
 			vigencia_meses: Number(vigenciaMeses),
 			valor_total_global: valorTotalGlobal,
 			grupos: grupos.map((g) => ({
@@ -388,6 +507,7 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 					descricao_especificacao: item.descricao_especificacao.trim(),
 					unidade_medida: item.unidade_medida.trim() || undefined,
 					marca_modelo: item.marca_modelo.trim() || undefined,
+					url_imagem: item.url_imagem.trim() || undefined,
 					valor_unitario: Number(item.valor_unitario),
 					quantidade_total_ofertada: hasParticipantes ? undefined : qty,
 					participantes: hasParticipantes
@@ -428,6 +548,7 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 		setDataAssinatura("");
 		setDataPublicacao("");
 		setVigenciaMeses(12);
+		setFieldErrors({});
 		setGrupos([{ numero_grupo: "G-01", descricao: "" }]);
 		setItens([
 			{
@@ -437,6 +558,7 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 				descricao_especificacao: "",
 				unidade_medida: "UN",
 				marca_modelo: "",
+				url_imagem: "",
 				valor_unitario: 0,
 				quantidade_manual: "",
 				participantes: [],
@@ -528,8 +650,20 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 	/* ── Input class helper ──────────────────────────────── */
 	const inputCls =
 		"w-full bg-[#F8FAFE]/30 border border-slate-955/15 px-3 py-2 text-xs font-sans text-slate-900 focus:border-slate-950 focus:bg-white outline-none transition-colors";
+	const inputErrCls = (field: string) =>
+		fieldErrors[field]
+			? "w-full bg-red-50 border border-red-500 px-3 py-2 text-xs font-sans text-slate-900 focus:border-red-700 focus:bg-red-50/50 outline-none transition-colors"
+			: inputCls;
 	const selectCls =
 		"w-full bg-white border border-slate-955/15 px-2 py-2 text-xs font-sans text-slate-900 focus:border-slate-950 outline-none transition-colors";
+	const selectErrCls = (field: string) =>
+		fieldErrors[field]
+			? "w-full bg-red-50 border border-red-500 px-2 py-2 text-xs font-sans text-slate-900 focus:border-red-700 focus:bg-red-50/50 outline-none transition-colors"
+			: selectCls;
+	const textareaErrCls = (field: string) =>
+		fieldErrors[field]
+			? "w-full bg-red-50 border border-red-500 px-3 py-2 text-xs font-sans text-slate-900 focus:border-red-700 focus:bg-red-50/50 outline-none transition-colors resize-none"
+			: `${inputCls} resize-none`;
 	const labelCls =
 		"text-[9px] font-bold text-slate-500 uppercase tracking-wider block";
 
@@ -547,7 +681,7 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 					>
 						<button
 							type="button"
-							onClick={() => setCurrentStep(step.num)}
+							onClick={() => handleStepClick(step.num)}
 							className={`flex items-center gap-2 group cursor-pointer transition-all ${
 								isActive
 									? "opacity-100"
@@ -617,16 +751,16 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 							id="numeroAta"
 							type="text"
 							value={numeroAta}
-							onChange={(e) => setNumeroAta(e.target.value)}
+							onChange={(e) => { setNumeroAta(e.target.value); if (fieldErrors.numeroAta) setFieldErrors((p) => ({ ...p, numeroAta: "" })); }}
 							placeholder="Ex: ATA-001/2026"
-							required
-							className={inputCls}
+							className={inputErrCls("numeroAta")}
 						/>
+						{fieldErrors.numeroAta && <p className="text-[9px] text-red-600 font-semibold font-sans mt-0.5">{fieldErrors.numeroAta}</p>}
 					</div>
 
 					<div className="space-y-1.5">
 						<label htmlFor="processoAdm" className={labelCls}>
-							Processo Administrativo *
+							Processo Administrativo (Opcional)
 						</label>
 						<input
 							id="processoAdm"
@@ -634,14 +768,13 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 							value={processoAdm}
 							onChange={(e) => setProcessoAdm(e.target.value)}
 							placeholder="Ex: PA-2025-0043"
-							required
 							className={inputCls}
 						/>
 					</div>
 
 					<div className="space-y-1.5">
 						<label htmlFor="numeroPregao" className={labelCls}>
-							Número do Pregão *
+							Número do Pregão (Opcional)
 						</label>
 						<input
 							id="numeroPregao"
@@ -649,7 +782,6 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 							value={numeroPregao}
 							onChange={(e) => setNumeroPregao(e.target.value)}
 							placeholder="Ex: PREGAO-002/2026"
-							required
 							className={inputCls}
 						/>
 					</div>
@@ -671,31 +803,75 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 					</div>
 
 					<div className="space-y-1.5">
-						<label htmlFor="dataAssinatura" className={labelCls}>
-							Data de Assinatura *
+						<label className={labelCls}>
+							Data de Assinatura (Opcional)
 						</label>
-						<input
-							id="dataAssinatura"
-							type="date"
-							value={dataAssinatura}
-							onChange={(e) => setDataAssinatura(e.target.value)}
-							required
-							className={inputCls}
-						/>
+						<Popover>
+							<PopoverTrigger asChild>
+								<button
+									type="button"
+									className={`w-full flex items-center justify-between bg-[#F8FAFE]/30 border border-slate-955/15 px-3 py-2 text-xs font-sans text-slate-900 outline-none text-left cursor-pointer transition-colors hover:bg-white focus:border-slate-950 ${
+										!dataAssinatura ? "text-slate-400" : ""
+									}`}
+								>
+									<span>{dataAssinatura ? formatDate(dataAssinatura) : "Selecione uma data"}</span>
+									<CalendarIcon className="w-3.5 h-3.5 text-slate-400" />
+								</button>
+							</PopoverTrigger>
+							<PopoverContent className="w-auto p-0 bg-white" align="start">
+								<Calendar
+									mode="single"
+									locale={ptBR}
+									selected={dataAssinatura ? new Date(dataAssinatura + "T12:00:00") : undefined}
+									onSelect={(date) => {
+										if (date) {
+											const y = date.getFullYear();
+											const m = String(date.getMonth() + 1).padStart(2, "0");
+											const d = String(date.getDate()).padStart(2, "0");
+											setDataAssinatura(`${y}-${m}-${d}`);
+										} else {
+											setDataAssinatura("");
+										}
+									}}
+								/>
+							</PopoverContent>
+						</Popover>
 					</div>
 
 					<div className="space-y-1.5">
-						<label htmlFor="dataPublicacao" className={labelCls}>
-							Data de Publicação *
+						<label className={labelCls}>
+							Data de Publicação (Opcional)
 						</label>
-						<input
-							id="dataPublicacao"
-							type="date"
-							value={dataPublicacao}
-							onChange={(e) => setDataPublicacao(e.target.value)}
-							required
-							className={inputCls}
-						/>
+						<Popover>
+							<PopoverTrigger asChild>
+								<button
+									type="button"
+									className={`w-full flex items-center justify-between bg-[#F8FAFE]/30 border border-slate-955/15 px-3 py-2 text-xs font-sans text-slate-900 outline-none text-left cursor-pointer transition-colors hover:bg-white focus:border-slate-950 ${
+										!dataPublicacao ? "text-slate-400" : ""
+									}`}
+								>
+									<span>{dataPublicacao ? formatDate(dataPublicacao) : "Selecione uma data"}</span>
+									<CalendarIcon className="w-3.5 h-3.5 text-slate-400" />
+								</button>
+							</PopoverTrigger>
+							<PopoverContent className="w-auto p-0 bg-white" align="start">
+								<Calendar
+									mode="single"
+									locale={ptBR}
+									selected={dataPublicacao ? new Date(dataPublicacao + "T12:00:00") : undefined}
+									onSelect={(date) => {
+										if (date) {
+											const y = date.getFullYear();
+											const m = String(date.getMonth() + 1).padStart(2, "0");
+											const d = String(date.getDate()).padStart(2, "0");
+											setDataPublicacao(`${y}-${m}-${d}`);
+										} else {
+											setDataPublicacao("");
+										}
+									}}
+								/>
+							</PopoverContent>
+						</Popover>
 					</div>
 				</div>
 			</div>
@@ -785,12 +961,17 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 								}
 								placeholder="Ex: G-01"
 								required
-								className={`${inputCls} text-center font-bold`}
+								className={`${inputErrCls(`grupo_${idx}_numero_grupo`)} text-center font-bold`}
 							/>
+							{fieldErrors[`grupo_${idx}_numero_grupo`] && (
+								<p className="text-[9px] text-red-600 font-semibold font-sans mt-0.5">
+									{fieldErrors[`grupo_${idx}_numero_grupo`]}
+								</p>
+							)}
 						</div>
 						<div className="md:col-span-8 space-y-1">
 							<label className={labelCls}>
-								Descrição do Lote / Objeto do Grupo
+								Descrição do Lote / Objeto do Grupo (Opcional)
 							</label>
 							<input
 								type="text"
@@ -881,14 +1062,13 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 							{/* Linha 1: Código, Grupo, Fornecedor */}
 							<div className="grid grid-cols-1 md:grid-cols-12 gap-4">
 								<div className="md:col-span-2 space-y-1">
-									<label className={labelCls}>Item Código *</label>
+									<label className={labelCls}>Item Código (Opcional)</label>
 									<input
 										type="text"
 										value={item.numero_item}
 										onChange={(e) =>
 											handleItemChange(idx, "numero_item", e.target.value)
 										}
-										required
 										className={`${inputCls} text-center font-semibold`}
 									/>
 								</div>
@@ -919,7 +1099,7 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 											handleItemChange(idx, "fornecedor_id", e.target.value)
 										}
 										required
-										className={selectCls}
+										className={selectErrCls(`item_${idx}_fornecedor_id`)}
 									>
 										<option value="">-- Selecione o Fornecedor --</option>
 										{suppliers.map((s) => (
@@ -928,6 +1108,11 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 											</option>
 										))}
 									</select>
+									{fieldErrors[`item_${idx}_fornecedor_id`] && (
+										<p className="text-[9px] text-red-600 font-semibold font-sans mt-0.5">
+											{fieldErrors[`item_${idx}_fornecedor_id`]}
+										</p>
+									)}
 								</div>
 							</div>
 
@@ -948,14 +1133,19 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 									}
 									placeholder="Descreva o produto, modelo mínimo, requisitos técnicos legais..."
 									required
-									className={`${inputCls} resize-none`}
+									className={textareaErrCls(`item_${idx}_descricao_especificacao`)}
 								/>
+								{fieldErrors[`item_${idx}_descricao_especificacao`] && (
+									<p className="text-[9px] text-red-600 font-semibold font-sans mt-0.5">
+										{fieldErrors[`item_${idx}_descricao_especificacao`]}
+									</p>
+								)}
 							</div>
 
 							{/* Linha 3: Unidade, Marca, Valor */}
 							<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-4">
 								<div className="md:col-span-3 space-y-1">
-									<label className={labelCls}>Unidade Medida *</label>
+									<label className={labelCls}>Unidade Medida (Opcional)</label>
 									<input
 										type="text"
 										value={item.unidade_medida}
@@ -963,12 +1153,11 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 											handleItemChange(idx, "unidade_medida", e.target.value)
 										}
 										placeholder="Ex: UN, PCT, GL, CX"
-										required
 										className={inputCls}
 									/>
 								</div>
 								<div className="md:col-span-4 space-y-1">
-									<label className={labelCls}>Marca e Modelo</label>
+									<label className={labelCls}>Marca e Modelo (Opcional)</label>
 									<input
 										type="text"
 										value={item.marca_modelo}
@@ -995,9 +1184,14 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 											}
 											placeholder="Ex: 120,50"
 											required
-											className={`${inputCls} pl-8`}
+											className={`${inputErrCls(`item_${idx}_valor_unitario`)} pl-8`}
 										/>
 									</div>
+									{fieldErrors[`item_${idx}_valor_unitario`] && (
+										<p className="text-[9px] text-red-600 font-semibold font-sans mt-0.5">
+											{fieldErrors[`item_${idx}_valor_unitario`]}
+										</p>
+									)}
 								</div>
 								{!hasParticipantes && (
 									<div className="md:col-span-2 space-y-1">
@@ -1014,11 +1208,125 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 												)
 											}
 											placeholder="Ex: 100"
-											className={`${inputCls} text-center font-semibold`}
+											className={`${inputErrCls(`item_${idx}_quantidade`)} text-center font-semibold`}
 										/>
+										{fieldErrors[`item_${idx}_quantidade`] && (
+											<p className="text-[9px] text-red-600 font-semibold font-sans mt-0.5">
+												{fieldErrors[`item_${idx}_quantidade`]}
+											</p>
+										)}
 									</div>
 								)}
 							</div>
+							{hasParticipantes && fieldErrors[`item_${idx}_quantidade`] && (
+								<p className="text-[10px] text-red-600 font-bold font-sans mt-1 bg-red-50 p-2 border border-red-200">
+									Erro de Quantidade: {fieldErrors[`item_${idx}_quantidade`]} (A soma das quantidades dos órgãos participantes deve ser maior que zero)
+								</p>
+							)}
+
+						{/* ── Upload de Imagem do Produto ──────────── */}
+						<div className="border border-dashed border-slate-300 bg-slate-50/50 p-4 space-y-3">
+							<div className="flex items-center justify-between">
+								<label className="text-[9px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+									<ImagePlus className="w-3.5 h-3.5" />
+									Imagem do Produto (Opcional)
+								</label>
+								{item.url_imagem && (
+									<button
+										type="button"
+										onClick={() => {
+											const u = [...itens];
+											u[idx] = { ...u[idx], url_imagem: "" };
+											setItens(u);
+										}}
+										className="flex items-center gap-1 text-[9px] font-bold text-red-600 hover:text-red-800 uppercase tracking-wider cursor-pointer transition"
+									>
+										<X className="w-3 h-3" />
+										Remover
+									</button>
+								)}
+							</div>
+
+							<div className="flex items-start gap-4">
+								{/* Preview */}
+								<div className="shrink-0 w-24 h-24 border border-slate-200 bg-white flex items-center justify-center overflow-hidden">
+									{item.url_imagem ? (
+										<img
+											src={item.url_imagem}
+											alt="Preview do produto"
+											className="w-full h-full object-cover"
+											onError={(e) => {
+												(e.target as HTMLImageElement).style.display = "none";
+											}}
+										/>
+									) : (
+										<Package className="w-8 h-8 text-slate-300" />
+									)}
+								</div>
+
+								{/* Input de arquivo e URL */}
+								<div className="flex-1 space-y-3">
+									<div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+										<div>
+											<label
+												htmlFor={`img-upload-${idx}`}
+												className={`flex items-center justify-center gap-2 w-full py-2.5 border text-[10px] font-bold font-sans uppercase tracking-wider transition cursor-pointer ${
+													uploadingImageIdx === idx
+														? "bg-slate-100 text-slate-400 cursor-wait border-slate-200"
+														: "bg-white text-slate-700 border-slate-300 hover:bg-slate-50 hover:border-slate-500"
+												}`}
+											>
+												{uploadingImageIdx === idx ? (
+													<>
+														<Loader2 className="w-3.5 h-3.5 animate-spin" />
+														Enviando...
+													</>
+												) : (
+													<>
+														<ImagePlus className="w-3.5 h-3.5" />
+														{item.url_imagem ? "Trocar de Arquivo" : "Enviar Imagem"}
+													</>
+												)}
+											</label>
+											<input
+												id={`img-upload-${idx}`}
+												type="file"
+												accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
+												disabled={uploadingImageIdx !== null}
+												onChange={(e) => {
+													const file = e.target.files?.[0];
+													if (file) handleImageUpload(idx, file);
+													e.target.value = "";
+												}}
+												className="hidden"
+											/>
+											<p className="text-[9px] text-slate-400 font-sans mt-1">
+												PNG, JPG, WEBP ou GIF (máx 5MB)
+											</p>
+										</div>
+
+										<div className="space-y-1">
+											<input
+												type="url"
+												placeholder="https://exemplo.com/imagem.png"
+												value={item.url_imagem}
+												onChange={(e) => handleItemChange(idx, "url_imagem", e.target.value)}
+												className={inputCls}
+											/>
+											<p className="text-[9px] text-slate-400 font-sans">
+												Ou cole a URL direta de uma imagem da internet
+											</p>
+										</div>
+									</div>
+
+									{uploadImageError && uploadingImageIdx === null && (
+										<p className="text-[9px] text-red-600 font-sans font-semibold">
+											{uploadImageError}
+										</p>
+									)}
+								</div>
+							</div>
+						</div>
 
 							{/* ── Sub-tabela: Órgãos Participantes ────── */}
 							<div className="mt-2 border border-slate-200 bg-white">
@@ -1353,35 +1661,48 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 			</div>
 
 			{/* Barra de envio */}
-			<div className="bg-[#F8FAFE] border border-slate-955/10 p-6 flex flex-col md:flex-row justify-between items-center gap-6">
-				<div className="text-center md:text-left space-y-1">
-					<span className="text-[10px] font-sans font-bold text-slate-500 uppercase tracking-wider block">
-						VALOR TOTAL GLOBAL ESTIMADO
-					</span>
-					<h3 className="text-3xl font-light font-display text-slate-955 leading-none">
-						{fmtBRL(valorTotalGlobal)}
-					</h3>
-				</div>
+			<div className="bg-[#F8FAFE] border border-slate-955/10 p-6 space-y-4">
+				{/* Erro inline perto do botão — aparece quando há erro de validação no step 4 */}
+				{errorMsg && (
+					<div className="flex items-start gap-3 p-3 border border-red-300 bg-red-50 text-red-800 animate-fade-in">
+						<Info className="w-4 h-4 shrink-0 mt-0.5 text-red-600" />
+						<div>
+							<p className="text-[9px] font-bold uppercase tracking-wider text-red-700 mb-0.5">Erro ao Finalizar</p>
+							<p className="text-[11px] font-sans leading-snug">{errorMsg}</p>
+						</div>
+					</div>
+				)}
 
-				<div>
-					<Button
-						type="button"
-						onClick={handleSubmit}
-						disabled={submitting}
-						className="h-12 px-8 bg-slate-950 hover:bg-slate-900 text-white cursor-pointer uppercase tracking-wider text-xs font-bold font-sans rounded-none inline-flex items-center gap-2.5 border border-slate-955 shadow-md transition-all active:translate-y-px disabled:opacity-50"
-					>
-						{submitting ? (
-							<>
-								<Loader2 className="w-4 h-4 animate-spin text-white" />
-								<span>Autuando ATA na API...</span>
-							</>
-						) : (
-							<>
-								<span>Finalizar Autuação da ATA</span>
-								<ArrowRight className="w-4 h-4" />
-							</>
-						)}
-					</Button>
+				<div className="flex flex-col md:flex-row justify-between items-center gap-6">
+					<div className="text-center md:text-left space-y-1">
+						<span className="text-[10px] font-sans font-bold text-slate-500 uppercase tracking-wider block">
+							VALOR TOTAL GLOBAL ESTIMADO
+						</span>
+						<h3 className="text-3xl font-light font-display text-slate-955 leading-none">
+							{fmtBRL(valorTotalGlobal)}
+						</h3>
+					</div>
+
+					<div>
+						<Button
+							type="button"
+							onClick={handleSubmit}
+							disabled={submitting}
+							className="h-12 px-8 bg-slate-950 hover:bg-slate-900 text-white cursor-pointer uppercase tracking-wider text-xs font-bold font-sans rounded-none inline-flex items-center gap-2.5 border border-slate-955 shadow-md transition-all active:translate-y-px disabled:opacity-50"
+						>
+							{submitting ? (
+								<>
+									<Loader2 className="w-4 h-4 animate-spin text-white" />
+									<span>Autuando ATA na API...</span>
+								</>
+							) : (
+								<>
+									<span>Finalizar Autuação da ATA</span>
+									<ArrowRight className="w-4 h-4" />
+								</>
+							)}
+						</Button>
+					</div>
 				</div>
 			</div>
 		</div>

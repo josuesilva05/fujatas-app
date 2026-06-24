@@ -209,5 +209,42 @@ export interface AtaMonitorResponse {
 	valor_total_global?: string;
 	orgao_gerenciador_nome: string;
 	orgao_gerenciador_cnpj: string;
+	status: "ATIVA" | "INATIVA" | "CANCELADA";
 	items: ItemAtaMonitorResponse[];
+}
+
+export interface AtaMonitorPageResponse {
+	content: AtaMonitorResponse[];
+	totalElements: number;
+	totalPages: number;
+	number: number;
+	size: number;
+}
+
+export interface AtaUpdatePayload {
+	numero_ata?: string;
+	processo_administrativo?: string;
+	numero_pregao?: string;
+	data_assinatura?: string;
+	data_publicacao?: string;
+	vigencia_meses?: number;
+	valor_total_global?: number;
+}
+
+export interface AtaStatusUpdatePayload {
+	status: "ATIVA" | "INATIVA" | "CANCELADA";
+	justificativa: string;
+}
+
+export interface AtaAuditLogEntry {
+	id: string;
+	ata_id: string;
+	usuario_id?: string;
+	usuario_email?: string;
+	acao: string;
+	campo_alterado?: string;
+	valor_anterior?: string;
+	valor_novo?: string;
+	justificativa?: string;
+	criado_em: string;
 }
