@@ -18,6 +18,7 @@ export interface AtaResponse {
 	data_publicacao?: string;
 	vigencia_meses: number;
 	valor_total_global?: number;
+	regras_carona?: RegraLimiteCaronaResponse[];
 }
 
 export interface GrupoLoteResponse {
@@ -95,6 +96,7 @@ export interface ItemSearchResponse {
 	fornecedor: FornecedorResponse;
 	ata: AtaResponse;
 	grupo?: GrupoLoteResponse;
+	participantes?: ItemAtaParticipanteResponse[];
 }
 
 export interface SortResponse {

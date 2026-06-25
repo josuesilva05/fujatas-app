@@ -313,15 +313,6 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 
 	/* ── Handlers de Regras ──────────────────────────────── */
 
-	const handleAddRegra = () => {
-		setRegras([...regras, { percentual_maximo_do_saldo: 50, descricao: "" }]);
-	};
-
-	const handleRemoveRegra = (idx: number) => {
-		if (regras.length === 1) return;
-		setRegras(regras.filter((_, i) => i !== idx));
-	};
-
 	const handleRegraChange = (
 		idx: number,
 		field: keyof RegraForm,
@@ -1249,12 +1240,12 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 
 							<div className="flex items-start gap-4">
 								{/* Preview */}
-								<div className="shrink-0 w-24 h-24 border border-slate-200 bg-white flex items-center justify-center overflow-hidden">
+								<div className="shrink-0 w-24 h-24 border border-slate-200 bg-white flex items-center justify-center overflow-hidden p-1">
 									{item.url_imagem ? (
 										<img
 											src={item.url_imagem}
 											alt="Preview do produto"
-											className="w-full h-full object-cover"
+											className="max-w-full max-h-full object-contain"
 											onError={(e) => {
 												(e.target as HTMLImageElement).style.display = "none";
 											}}
@@ -1600,13 +1591,6 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 					<span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
 						§ DIRETRIZES E LIMITES DE CARONA
 					</span>
-					<button
-						type="button"
-						onClick={handleAddRegra}
-						className="text-[10px] text-slate-955 font-bold uppercase tracking-wider flex items-center gap-1 cursor-pointer hover:underline"
-					>
-						<Plus className="w-3.5 h-3.5" /> Adicionar
-					</button>
 				</div>
 
 				<div className="space-y-4 max-h-[300px] overflow-y-auto pr-1">
@@ -1615,8 +1599,8 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 							key={idx}
 							className="flex gap-3 items-start border-b border-dashed border-slate-100 pb-3"
 						>
-							<div className="w-24 space-y-1.5 shrink-0">
-								<label className={labelCls}>Limite Máximo (%) *</label>
+							<div className="w-36 space-y-1.5 shrink-0">
+								<label className={`${labelCls} whitespace-nowrap`}>Limite Máximo (%) *</label>
 								<input
 									type="number"
 									min="0"
