@@ -431,7 +431,6 @@ export default function SupplierBalances({ user }: SupplierBalancesProps) {
 				) : showItems ? (
 					<div className="space-y-3">
 						{filteredItems.map((item) => {
-							console.log("url_imagem:", item.url_imagem);
 							const total = Number(item.quantidade_total_ofertada ?? 0);
 							const saldo = Number(item.quantidade_saldo_disponivel ?? 0);
 							const pct = total > 0 ? Math.round((saldo / total) * 100) : 0;
