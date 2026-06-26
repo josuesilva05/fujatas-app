@@ -410,9 +410,7 @@ export default function DashboardPage({ user, onLogout }: DashboardPageProps) {
 								{activeTab === "monitoramento" && (
 									<ManagerAtaMonitor user={user} />
 								)}
-								{activeTab === "cadastros" && (
-									<ManagerEntities user={user} />
-								)}
+								{activeTab === "cadastros" && <ManagerEntities user={user} />}
 							</>
 						)}
 

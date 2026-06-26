@@ -119,7 +119,9 @@ export default function ManagerApprovals({ user }: ManagerApprovalsProps) {
 	const [searchQ, setSearchQ] = useState("");
 
 	const [actionOrder, setActionOrder] = useState<PedidoResponse | null>(null);
-	const [actionType, setActionType] = useState<"AUTORIZADO" | "REJEITADO" | null>(null);
+	const [actionType, setActionType] = useState<
+		"AUTORIZADO" | "REJEITADO" | null
+	>(null);
 	const [justificativa, setJustificativa] = useState("");
 	const [submitting, setSubmitting] = useState(false);
 
@@ -136,9 +138,14 @@ export default function ManagerApprovals({ user }: ManagerApprovalsProps) {
 		}
 	}, []);
 
-	useEffect(() => { fetchOrders(); }, [fetchOrders]);
+	useEffect(() => {
+		fetchOrders();
+	}, [fetchOrders]);
 
-	const handleOpenAction = (order: PedidoResponse, type: "AUTORIZADO" | "REJEITADO") => {
+	const handleOpenAction = (
+		order: PedidoResponse,
+		type: "AUTORIZADO" | "REJEITADO",
+	) => {
 		setActionOrder(order);
 		setActionType(type);
 		setJustificativa("");
@@ -167,11 +174,12 @@ export default function ManagerApprovals({ user }: ManagerApprovalsProps) {
 	};
 
 	const q = searchQ.toLowerCase();
-	const filtered = orders.filter((o) =>
-		!q ||
-		o.id.toLowerCase().includes(q) ||
-		o.status.toLowerCase().includes(q) ||
-		o.tipo_adesao.toLowerCase().includes(q),
+	const filtered = orders.filter(
+		(o) =>
+			!q ||
+			o.id.toLowerCase().includes(q) ||
+			o.status.toLowerCase().includes(q) ||
+			o.tipo_adesao.toLowerCase().includes(q),
 	);
 
 	const pending = filtered.filter((o) => o.status === "PENDENTE");
@@ -182,7 +190,6 @@ export default function ManagerApprovals({ user }: ManagerApprovalsProps) {
 	return (
 		<div className="animate-fade-in">
 			<div className="p-6 md:p-8 space-y-6">
-
 				{/* ── Header ── */}
 				<div>
 					<div className="flex items-start justify-between pb-4">
@@ -242,7 +249,9 @@ export default function ManagerApprovals({ user }: ManagerApprovalsProps) {
 					<div className="flex items-center justify-center py-20">
 						<div className="flex flex-col items-center gap-3">
 							<Loader2 className="w-6 h-6 animate-spin text-slate-400" />
-							<span className="text-xs text-slate-400 font-sans">Carregando pedidos…</span>
+							<span className="text-xs text-slate-400 font-sans">
+								Carregando pedidos…
+							</span>
 						</div>
 					</div>
 				)}
@@ -276,7 +285,9 @@ export default function ManagerApprovals({ user }: ManagerApprovalsProps) {
 						{pending.length === 0 && history.length === 0 && (
 							<div className="border border-dashed border-slate-200 bg-[#F8FAFE] p-14 text-center">
 								<CheckCircle2 className="w-8 h-8 text-slate-300 mx-auto mb-3" />
-								<p className="text-xs text-slate-500 font-sans">Nenhum pedido encontrado.</p>
+								<p className="text-xs text-slate-500 font-sans">
+									Nenhum pedido encontrado.
+								</p>
 							</div>
 						)}
 
@@ -322,91 +333,110 @@ export default function ManagerApprovals({ user }: ManagerApprovalsProps) {
 			</div>
 
 			{/* ── Action Modal ── */}
-			{actionOrder && actionType && createPortal(
-				<div
-					className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm"
-					onClick={() => { setActionOrder(null); setActionType(null); }}
-				>
+			{actionOrder &&
+				actionType &&
+				createPortal(
 					<div
-						className="bg-white border border-slate-200 w-full sm:max-w-md mx-4 mb-0 sm:mb-auto p-6 shadow-2xl animate-slide-up"
-						onClick={(e) => e.stopPropagation()}
+						className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm"
+						onClick={() => {
+							setActionOrder(null);
+							setActionType(null);
+						}}
 					>
-						{/* Modal header */}
-						<div className="flex items-center justify-between mb-1">
-							<div className="flex items-center gap-2">
-								<span
-									className={`w-2 h-2 rounded-full ${actionType === "AUTORIZADO" ? "bg-emerald-500" : "bg-red-500"}`}
-								/>
-								<span className="text-xs font-bold text-slate-900 uppercase tracking-wider font-sans">
-									{actionType === "AUTORIZADO" ? "Autorizar Pedido" : "Rejeitar Pedido"}
-								</span>
+						<div
+							className="bg-white border border-slate-200 w-full sm:max-w-md mx-4 mb-0 sm:mb-auto p-6 shadow-2xl animate-slide-up"
+							onClick={(e) => e.stopPropagation()}
+						>
+							{/* Modal header */}
+							<div className="flex items-center justify-between mb-1">
+								<div className="flex items-center gap-2">
+									<span
+										className={`w-2 h-2 rounded-full ${actionType === "AUTORIZADO" ? "bg-emerald-500" : "bg-red-500"}`}
+									/>
+									<span className="text-xs font-bold text-slate-900 uppercase tracking-wider font-sans">
+										{actionType === "AUTORIZADO"
+											? "Autorizar Pedido"
+											: "Rejeitar Pedido"}
+									</span>
+								</div>
+								<button
+									type="button"
+									onClick={() => {
+										setActionOrder(null);
+										setActionType(null);
+									}}
+									className="p-1 hover:bg-slate-100 transition cursor-pointer"
+								>
+									<X className="w-4 h-4 text-slate-400" />
+								</button>
 							</div>
-							<button
-								type="button"
-								onClick={() => { setActionOrder(null); setActionType(null); }}
-								className="p-1 hover:bg-slate-100 transition cursor-pointer"
-							>
-								<X className="w-4 h-4 text-slate-400" />
-							</button>
-						</div>
 
-						{/* Pedido ID */}
-						<p className="text-[10px] text-slate-400 font-sans mb-4 font-mono">
-							#{actionOrder.id.toUpperCase()}
-						</p>
+							{/* Pedido ID */}
+							<p className="text-[10px] text-slate-400 font-sans mb-4 font-mono">
+								#{actionOrder.id.toUpperCase()}
+							</p>
 
-						<p className="text-xs text-slate-600 font-sans mb-4 leading-relaxed">
-							{actionType === "AUTORIZADO"
-								? "Confirmar a autorização deste pedido? Esta ação não poderá ser desfeita."
-								: "Informe a justificativa para rejeitar este pedido. O campo é obrigatório."}
-						</p>
+							<p className="text-xs text-slate-600 font-sans mb-4 leading-relaxed">
+								{actionType === "AUTORIZADO"
+									? "Confirmar a autorização deste pedido? Esta ação não poderá ser desfeita."
+									: "Informe a justificativa para rejeitar este pedido. O campo é obrigatório."}
+							</p>
 
-						{actionType === "REJEITADO" && (
-							<div className="mb-4">
-								<label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1 font-sans">
-									Justificativa *
-								</label>
-								<textarea
-									value={justificativa}
-									onChange={(e) => setJustificativa(e.target.value)}
-									rows={3}
-									placeholder="Descreva o motivo da rejeição…"
-									className="w-full border border-slate-955/10 px-3 py-2 text-xs font-sans text-slate-900 bg-white focus:outline-none focus-visible:ring-1 focus-visible:ring-red-400 resize-none transition"
-								/>
+							{actionType === "REJEITADO" && (
+								<div className="mb-4">
+									<label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1 font-sans">
+										Justificativa *
+									</label>
+									<textarea
+										value={justificativa}
+										onChange={(e) => setJustificativa(e.target.value)}
+										rows={3}
+										placeholder="Descreva o motivo da rejeição…"
+										className="w-full border border-slate-955/10 px-3 py-2 text-xs font-sans text-slate-900 bg-white focus:outline-none focus-visible:ring-1 focus-visible:ring-red-400 resize-none transition"
+									/>
+								</div>
+							)}
+
+							<div className="flex items-center gap-3 justify-end pt-1">
+								<button
+									type="button"
+									onClick={() => {
+										setActionOrder(null);
+										setActionType(null);
+									}}
+									className="px-4 py-2 text-[10px] font-bold font-sans uppercase tracking-wider border border-slate-955/10 bg-white text-slate-600 hover:bg-slate-50 transition cursor-pointer"
+								>
+									Cancelar
+								</button>
+								<button
+									type="button"
+									onClick={handleConfirmAction}
+									disabled={
+										submitting ||
+										(actionType === "REJEITADO" && !justificativa.trim())
+									}
+									className={`px-5 py-2 text-[10px] font-bold font-sans uppercase tracking-wider border transition cursor-pointer flex items-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed ${
+										actionType === "AUTORIZADO"
+											? "bg-emerald-600 text-white border-emerald-600 hover:bg-emerald-700"
+											: "bg-red-600 text-white border-red-600 hover:bg-red-700"
+									}`}
+								>
+									{submitting ? (
+										<Loader2 className="w-3 h-3 animate-spin" />
+									) : actionType === "AUTORIZADO" ? (
+										<ThumbsUp className="w-3 h-3" />
+									) : (
+										<ThumbsDown className="w-3 h-3" />
+									)}
+									{actionType === "AUTORIZADO"
+										? "Confirmar Autorização"
+										: "Confirmar Rejeição"}
+								</button>
 							</div>
-						)}
-
-						<div className="flex items-center gap-3 justify-end pt-1">
-							<button
-								type="button"
-								onClick={() => { setActionOrder(null); setActionType(null); }}
-								className="px-4 py-2 text-[10px] font-bold font-sans uppercase tracking-wider border border-slate-955/10 bg-white text-slate-600 hover:bg-slate-50 transition cursor-pointer"
-							>
-								Cancelar
-							</button>
-							<button
-								type="button"
-								onClick={handleConfirmAction}
-								disabled={submitting || (actionType === "REJEITADO" && !justificativa.trim())}
-								className={`px-5 py-2 text-[10px] font-bold font-sans uppercase tracking-wider border transition cursor-pointer flex items-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed ${
-									actionType === "AUTORIZADO"
-										? "bg-emerald-600 text-white border-emerald-600 hover:bg-emerald-700"
-										: "bg-red-600 text-white border-red-600 hover:bg-red-700"
-								}`}
-							>
-								{submitting ? (
-									<Loader2 className="w-3 h-3 animate-spin" />
-								) : actionType === "AUTORIZADO" ? (
-									<ThumbsUp className="w-3 h-3" />
-								) : (
-									<ThumbsDown className="w-3 h-3" />
-								)}
-								{actionType === "AUTORIZADO" ? "Confirmar Autorização" : "Confirmar Rejeição"}
-							</button>
 						</div>
-					</div>
-				</div>
-			, document.body)}
+					</div>,
+					document.body,
+				)}
 		</div>
 	);
 }
@@ -428,16 +458,40 @@ function StatCard({
 	highlight?: boolean;
 }) {
 	const palette = {
-		slate: { bg: "bg-white border-slate-955/10", text: "text-slate-700", icon: "text-slate-400", val: "text-slate-900" },
-		amber: { bg: "bg-amber-50 border-amber-200", text: "text-amber-700", icon: "text-amber-500", val: "text-amber-900" },
-		emerald: { bg: "bg-emerald-50 border-emerald-200", text: "text-emerald-700", icon: "text-emerald-500", val: "text-emerald-900" },
-		red: { bg: "bg-red-50 border-red-200", text: "text-red-700", icon: "text-red-500", val: "text-red-900" },
+		slate: {
+			bg: "bg-white border-slate-955/10",
+			text: "text-slate-700",
+			icon: "text-slate-400",
+			val: "text-slate-900",
+		},
+		amber: {
+			bg: "bg-amber-50 border-amber-200",
+			text: "text-amber-700",
+			icon: "text-amber-500",
+			val: "text-amber-900",
+		},
+		emerald: {
+			bg: "bg-emerald-50 border-emerald-200",
+			text: "text-emerald-700",
+			icon: "text-emerald-500",
+			val: "text-emerald-900",
+		},
+		red: {
+			bg: "bg-red-50 border-red-200",
+			text: "text-red-700",
+			icon: "text-red-500",
+			val: "text-red-900",
+		},
 	}[color];
 
 	return (
-		<div className={`border ${palette.bg} p-3 ${highlight ? "ring-1 ring-amber-300" : ""}`}>
+		<div
+			className={`border ${palette.bg} p-3 ${highlight ? "ring-1 ring-amber-300" : ""}`}
+		>
 			<div className="flex items-center justify-between mb-2">
-				<span className={`text-[9px] font-bold uppercase tracking-wider font-sans ${palette.text}`}>
+				<span
+					className={`text-[9px] font-bold uppercase tracking-wider font-sans ${palette.text}`}
+				>
 					{label}
 				</span>
 				<span className={palette.icon}>{icon}</span>
@@ -465,11 +519,17 @@ function SectionLabel({
 }) {
 	return (
 		<div className="flex items-center gap-2 mb-1">
-			<span className={`w-2 h-2 rounded-full ${dot} ${urgent ? "animate-pulse" : ""}`} />
-			<span className={`text-[10px] font-bold uppercase tracking-wider font-sans ${urgent ? "text-amber-700" : "text-slate-500"}`}>
+			<span
+				className={`w-2 h-2 rounded-full ${dot} ${urgent ? "animate-pulse" : ""}`}
+			/>
+			<span
+				className={`text-[10px] font-bold uppercase tracking-wider font-sans ${urgent ? "text-amber-700" : "text-slate-500"}`}
+			>
 				{label}
 			</span>
-			<span className={`text-[9px] font-bold px-1.5 py-0.5 font-sans ${urgent ? "bg-amber-100 text-amber-700" : "bg-slate-100 text-slate-500"}`}>
+			<span
+				className={`text-[9px] font-bold px-1.5 py-0.5 font-sans ${urgent ? "bg-amber-100 text-amber-700" : "bg-slate-100 text-slate-500"}`}
+			>
 				{count}
 			</span>
 		</div>
@@ -500,8 +560,11 @@ function PendingAccordionCard({
 			try {
 				const d = await getOrderDetail(order.id);
 				setDetail(d);
-			} catch { /* silently fail */ }
-			finally { setLoadingDetail(false); }
+			} catch {
+				/* silently fail */
+			} finally {
+				setLoadingDetail(false);
+			}
 		}
 	};
 
@@ -518,7 +581,9 @@ function PendingAccordionCard({
 						role="button"
 						tabIndex={0}
 						onClick={toggle}
-						onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") toggle(); }}
+						onKeyDown={(e) => {
+							if (e.key === "Enter" || e.key === " ") toggle();
+						}}
 						className="w-full flex items-center justify-between gap-4 px-4 py-3.5 hover:bg-amber-50/30 transition-colors cursor-pointer group"
 					>
 						<div className="flex items-center gap-3 flex-wrap min-w-0 text-left">
@@ -526,11 +591,13 @@ function PendingAccordionCard({
 								#{order.id.slice(0, 8).toUpperCase()}
 							</span>
 
-							<span className={`text-[9px] font-bold font-sans uppercase tracking-wider px-2 py-0.5 border ${
-								isCarona
-									? "text-amber-800 bg-amber-50 border-amber-200"
-									: "text-blue-800 bg-blue-50 border-blue-200"
-							}`}>
+							<span
+								className={`text-[9px] font-bold font-sans uppercase tracking-wider px-2 py-0.5 border ${
+									isCarona
+										? "text-amber-800 bg-amber-50 border-amber-200"
+										: "text-blue-800 bg-blue-50 border-blue-200"
+								}`}
+							>
 								{isCarona ? "Carona" : "Direta"}
 							</span>
 
@@ -542,7 +609,10 @@ function PendingAccordionCard({
 						<div className="flex items-center gap-2 shrink-0">
 							<button
 								type="button"
-								onClick={(e) => { e.stopPropagation(); onApprove(); }}
+								onClick={(e) => {
+									e.stopPropagation();
+									onApprove();
+								}}
 								className="px-3 py-1.5 text-[9px] font-bold font-sans uppercase tracking-wider bg-emerald-600 text-white border border-emerald-600 hover:bg-emerald-700 active:scale-95 transition-all cursor-pointer flex items-center gap-1.5"
 							>
 								<ThumbsUp className="w-3 h-3" />
@@ -550,7 +620,10 @@ function PendingAccordionCard({
 							</button>
 							<button
 								type="button"
-								onClick={(e) => { e.stopPropagation(); onReject(); }}
+								onClick={(e) => {
+									e.stopPropagation();
+									onReject();
+								}}
 								className="px-3 py-1.5 text-[9px] font-bold font-sans uppercase tracking-wider bg-white text-red-600 border border-red-300 hover:bg-red-50 active:scale-95 transition-all cursor-pointer flex items-center gap-1.5"
 							>
 								<ThumbsDown className="w-3 h-3" />
@@ -568,7 +641,9 @@ function PendingAccordionCard({
 							{loadingDetail ? (
 								<div className="flex items-center justify-center py-8 gap-2">
 									<Loader2 className="w-4 h-4 animate-spin text-amber-400" />
-									<span className="text-[10px] text-slate-400 font-sans">Carregando detalhes…</span>
+									<span className="text-[10px] text-slate-400 font-sans">
+										Carregando detalhes…
+									</span>
 								</div>
 							) : detail ? (
 								<OrderDetailContent detail={detail} />
@@ -604,8 +679,11 @@ function HistoryAccordionRow({ order }: { order: PedidoResponse }) {
 			try {
 				const d = await getOrderDetail(order.id);
 				setDetail(d);
-			} catch { /* silently fail */ }
-			finally { setLoadingDetail(false); }
+			} catch {
+				/* silently fail */
+			} finally {
+				setLoadingDetail(false);
+			}
 		}
 	};
 
@@ -621,14 +699,18 @@ function HistoryAccordionRow({ order }: { order: PedidoResponse }) {
 					<span className="text-[10px] font-bold text-slate-600 font-sans uppercase tracking-wider shrink-0">
 						#{order.id.slice(0, 8).toUpperCase()}
 					</span>
-					<span className={`text-[9px] font-bold font-sans uppercase tracking-wider px-2 py-0.5 border shrink-0 ${cfg.color} ${cfg.bg} ${cfg.border}`}>
+					<span
+						className={`text-[9px] font-bold font-sans uppercase tracking-wider px-2 py-0.5 border shrink-0 ${cfg.color} ${cfg.bg} ${cfg.border}`}
+					>
 						{cfg.label}
 					</span>
-					<span className={`text-[9px] font-bold font-sans uppercase tracking-wider px-2 py-0.5 border shrink-0 ${
-						order.tipo_adesao === "DIRETA"
-							? "text-blue-700 bg-blue-50 border-blue-200"
-							: "text-amber-700 bg-amber-50 border-amber-200"
-					}`}>
+					<span
+						className={`text-[9px] font-bold font-sans uppercase tracking-wider px-2 py-0.5 border shrink-0 ${
+							order.tipo_adesao === "DIRETA"
+								? "text-blue-700 bg-blue-50 border-blue-200"
+								: "text-amber-700 bg-amber-50 border-amber-200"
+						}`}
+					>
 						{order.tipo_adesao === "DIRETA" ? "Direta" : "Carona"}
 					</span>
 					<span className="text-[10px] text-slate-400 font-sans truncate hidden sm:block">
@@ -645,7 +727,9 @@ function HistoryAccordionRow({ order }: { order: PedidoResponse }) {
 					{loadingDetail ? (
 						<div className="flex items-center justify-center py-8 gap-2">
 							<Loader2 className="w-4 h-4 animate-spin text-slate-400" />
-							<span className="text-[10px] text-slate-400 font-sans">Carregando detalhes…</span>
+							<span className="text-[10px] text-slate-400 font-sans">
+								Carregando detalhes…
+							</span>
 						</div>
 					) : detail ? (
 						<OrderDetailContent detail={detail} />
@@ -671,18 +755,26 @@ function OrderDetailContent({ detail }: { detail: PedidoDetailResponse }) {
 		<div className="space-y-4 text-xs font-sans">
 			{/* Metadata grid */}
 			<div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-3">
-				<InfoField label="Órgão Comprador" value={detail.orgao_comprador?.nome || "—"} />
+				<InfoField
+					label="Órgão Comprador"
+					value={detail.orgao_comprador?.nome || "—"}
+				/>
 				<InfoField label="CNPJ" value={detail.orgao_comprador?.cnpj || "—"} />
-				<InfoField label="Data do Pedido" value={formatDate(detail.data_pedido)} />
+				<InfoField
+					label="Data do Pedido"
+					value={formatDate(detail.data_pedido)}
+				/>
 				<div>
 					<span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider block mb-0.5">
 						Tipo de Adesão
 					</span>
-					<span className={`inline-block text-[9px] font-bold px-2 py-0.5 border ${
-						detail.tipo_adesao === "DIRETA"
-							? "text-blue-800 bg-blue-50 border-blue-200"
-							: "text-amber-800 bg-amber-50 border-amber-200"
-					}`}>
+					<span
+						className={`inline-block text-[9px] font-bold px-2 py-0.5 border ${
+							detail.tipo_adesao === "DIRETA"
+								? "text-blue-800 bg-blue-50 border-blue-200"
+								: "text-amber-800 bg-amber-50 border-amber-200"
+						}`}
+					>
 						{detail.tipo_adesao === "DIRETA" ? "Direta" : "Carona"}
 					</span>
 				</div>
@@ -710,17 +802,25 @@ function OrderDetailContent({ detail }: { detail: PedidoDetailResponse }) {
 							</thead>
 							<tbody className="divide-y divide-slate-955/6">
 								{detail.itens.map((item) => (
-									<tr key={item.id} className="text-[10px] hover:bg-slate-50/60 transition-colors">
+									<tr
+										key={item.id}
+										className="text-[10px] hover:bg-slate-50/60 transition-colors"
+									>
 										<td className="px-3 py-2.5 text-slate-400 font-mono">
 											{item.item_ata?.numero_item ?? "—"}
 										</td>
 										<td className="px-3 py-2.5 text-slate-800 max-w-[200px]">
-											<span className="block truncate" title={item.item_ata?.descricao_especificacao}>
+											<span
+												className="block truncate"
+												title={item.item_ata?.descricao_especificacao}
+											>
 												{item.item_ata?.descricao_especificacao}
 											</span>
 										</td>
 										<td className="px-3 py-2.5 text-right text-slate-700">
-											{Number(item.quantidade_solicitada).toLocaleString("pt-BR")}
+											{Number(item.quantidade_solicitada).toLocaleString(
+												"pt-BR",
+											)}
 										</td>
 										<td className="px-3 py-2.5 text-right text-slate-700">
 											{formatCurrency(item.preco_unitario_no_pedido)}
@@ -733,7 +833,10 @@ function OrderDetailContent({ detail }: { detail: PedidoDetailResponse }) {
 							</tbody>
 							<tfoot>
 								<tr className="bg-slate-50 border-t border-slate-955/8 text-[10px] font-bold">
-									<td colSpan={4} className="px-3 py-2.5 text-right text-slate-500">
+									<td
+										colSpan={4}
+										className="px-3 py-2.5 text-right text-slate-500"
+									>
 										Total Geral
 									</td>
 									<td className="px-3 py-2.5 text-right text-slate-900">

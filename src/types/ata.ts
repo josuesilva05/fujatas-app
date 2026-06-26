@@ -250,3 +250,26 @@ export interface AtaAuditLogEntry {
 	justificativa?: string;
 	criado_em: string;
 }
+
+export interface ParsedAtaResponse {
+	numero_ata?: string;
+	processo_administrativo?: string;
+	numero_pregao?: string;
+	data_assinatura?: string;
+	data_publicacao?: string;
+	vigencia_meses?: number;
+	grupos?: {
+		numero_grupo: string;
+		descricao?: string;
+	}[];
+	items?: {
+		numero_item: string;
+		grupo_numero?: string;
+		fornecedor_id?: string;
+		descricao_especificacao?: string;
+		unidade_medida?: string;
+		marca_modelo?: string;
+		valor_unitario?: number;
+		quantidade_manual?: number | string;
+	}[];
+}
