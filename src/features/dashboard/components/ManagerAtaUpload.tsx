@@ -6,6 +6,7 @@ import {
 	Check,
 	ClipboardList,
 	Eye,
+	FileText,
 	ImagePlus,
 	Info,
 	Loader2,
@@ -19,7 +20,7 @@ import Button from "@/components/ui/Button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ptBR } from "date-fns/locale";
-import { createAta, uploadItemImage } from "@/services/atas";
+import { createAta, uploadItemImage, parseAtaPdf } from "@/services/atas";
 import { listOrgans } from "@/services/organs";
 import { listSuppliers } from "@/services/suppliers";
 import type { Organ } from "@/types/organ";
@@ -134,6 +135,8 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 	]);
 
 	// Auxiliares
+	const [parsingPdf, setParsingPdf] = useState(false);
+	const [pdfError, setPdfError] = useState("");
 	const [organs, setOrgans] = useState<Organ[]>([]);
 	const [suppliers, setSuppliers] = useState<Supplier[]>([]);
 	const [loadingData, setLoadingData] = useState(true);
@@ -145,6 +148,57 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 		numero_ata: string;
 		valor_total_global?: number;
 	} | null>(null);
+
+	const handlePdfUpload = async (file: File) => {
+		setPdfError("");
+		setParsingPdf(true);
+		try {
+			const data = await parseAtaPdf(file);
+			
+			// Recarrega fornecedores do banco
+			const suppliersList = await listSuppliers();
+			setSuppliers(suppliersList);
+			
+			// Preenche dados da ATA (Step 1)
+			if (data.numero_ata) setNumeroAta(data.numero_ata);
+			if (data.processo_administrativo) setProcessoAdm(data.processo_administrativo);
+			if (data.numero_pregao) setNumeroPregao(data.numero_pregao);
+			if (data.data_assinatura) setDataAssinatura(data.data_assinatura);
+			if (data.data_publicacao) setDataPublicacao(data.data_publicacao);
+			if (data.vigencia_meses) setVigenciaMeses(data.vigencia_meses);
+			
+			// Preenche grupos (Step 2)
+			if (data.grupos && data.grupos.length > 0) {
+				setGrupos(data.grupos.map((g: any) => ({
+					numero_grupo: g.numero_grupo,
+					descricao: g.descricao || ""
+				})));
+			}
+			
+			// Preenche itens (Step 3)
+			if (data.items && data.items.length > 0) {
+				setItens(data.items.map((item: any) => ({
+					numero_item: item.numero_item,
+					grupo_numero: item.grupo_numero || "G-01",
+					fornecedor_id: item.fornecedor_id || "",
+					descricao_especificacao: item.descricao_especificacao || "",
+					unidade_medida: item.unidade_medida || "UN",
+					marca_modelo: item.marca_modelo || "",
+					url_imagem: "",
+					valor_unitario: item.valor_unitario || 0,
+					quantidade_manual: item.quantidade_manual || "",
+					participantes: []
+				})));
+			}
+			
+		} catch (err: any) {
+			console.error("Erro ao analisar o PDF:", err);
+			const detail = err.response?.data?.detail || "Erro ao analisar o arquivo PDF. Verifique o formato do documento.";
+			setPdfError(detail);
+		} finally {
+			setParsingPdf(false);
+		}
+	};
 
 	useEffect(() => {
 		Promise.all([listOrgans(), listSuppliers()])
@@ -732,6 +786,55 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 				<span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block border-b border-slate-100 pb-2">
 					§ DADOS DE AUTUAÇÃO DA ATA
 				</span>
+
+				{/* Seção de Auto-Preenchimento por PDF */}
+				<div className="border border-dashed border-blue-200 bg-blue-50/5 p-4 space-y-2 mb-4">
+					<div className="flex items-center justify-between">
+						<span className="text-[10px] font-bold text-blue-700 uppercase tracking-wider block">
+							⚡ Importação Inteligente (Preenchimento Automático)
+						</span>
+						{parsingPdf && (
+							<span className="flex items-center gap-1 text-[10px] text-blue-700 font-bold uppercase tracking-wider">
+								<Loader2 className="w-3 h-3 animate-spin text-blue-600" />
+								Analisando PDF...
+							</span>
+						)}
+					</div>
+					<p className="text-[10px] text-slate-500 font-light leading-relaxed">
+						Faça upload do documento PDF oficial da ATA de Registro de Preços para preencher automaticamente os campos de dados da ata, lotes/grupos e todos os itens com seus respectivos fornecedores.
+					</p>
+					
+					<div>
+						<label
+							htmlFor="pdf-ata-upload"
+							className={`flex items-center justify-center gap-2 w-full py-2.5 border border-dashed border-blue-300 text-xs font-bold font-sans uppercase tracking-wider transition cursor-pointer bg-white ${
+								parsingPdf
+									? "text-slate-400 border-slate-200 cursor-wait bg-slate-50"
+									: "text-blue-700 border-blue-300 hover:bg-blue-50/50 hover:border-blue-600"
+							}`}
+						>
+							<FileText className="w-4 h-4" />
+							{parsingPdf ? "Processando documento..." : "Selecionar PDF da ATA"}
+						</label>
+						<input
+							id="pdf-ata-upload"
+							type="file"
+							accept="application/pdf"
+							disabled={parsingPdf}
+							onChange={(e) => {
+								const file = e.target.files?.[0];
+								if (file) handlePdfUpload(file);
+								e.target.value = "";
+							}}
+							className="hidden"
+						/>
+					</div>
+					{pdfError && (
+						<p className="text-[10px] text-red-600 font-semibold font-sans bg-red-50 p-2 border border-red-200 mt-1">
+							{pdfError}
+						</p>
+					)}
+				</div>
 
 				<div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
 					<div className="space-y-1.5">
