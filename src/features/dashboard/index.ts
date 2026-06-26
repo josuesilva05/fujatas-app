@@ -5,6 +5,7 @@ export { BuyerCart, BuyerCatalog, BuyerOrders } from "@/features/buyer";
 export { default as ManagerApprovals } from "./components/ManagerApprovals";
 export { default as ManagerAtaMonitor } from "./components/ManagerAtaMonitor";
 export { default as ManagerAtaUpload } from "./components/ManagerAtaUpload";
+export { default as ManagerEntities } from "./components/ManagerEntities";
 export { default as StatsSection } from "./components/StatsSection";
 export { default as SupplierBalances } from "./components/SupplierBalances";
 export { default as SupplierSales } from "./components/SupplierSales";

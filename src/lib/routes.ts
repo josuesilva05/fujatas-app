@@ -17,6 +17,7 @@ export const TAB_ROUTES: Record<
 		autorizacoes: { path: "autorizacoes", label: "Autorizações" },
 		cadastro: { path: "cadastro", label: "Upload ATA" },
 		monitoramento: { path: "monitoramento", label: "Monitoramento" },
+		cadastros: { path: "cadastros", label: "Cadastros" },
 	},
 	FORNECEDOR: {
 		saldos: { path: "saldos", label: "Itens Ativos" },

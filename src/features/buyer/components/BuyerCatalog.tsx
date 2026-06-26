@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { getAta, listSuppliers, searchItems } from "@/services/atas";
+import { listSuppliers, searchItems } from "@/services/atas";
 import type { ItemSearchResponse } from "@/types/ata";
 import type { FornecedorResponse } from "@/types/supplier";
 
@@ -152,11 +152,17 @@ function ItemCard({
 }) {
 	const saldo = Number.parseFloat(item.quantidade_saldo_disponivel);
 	const totalOfertado = Number.parseFloat(item.quantidade_total_ofertada);
+	const percentual = item.ata.regras_carona?.[0]?.percentual_maximo_do_saldo
+		? Number.parseFloat(item.ata.regras_carona[0].percentual_maximo_do_saldo)
+		: 50;
+	const maxCaronaQty = Math.floor(totalOfertado * percentual / 100);
+	const maxAvailable = tipoAdesao === "direta" ? saldo : maxCaronaQty;
+
 	const consumidoPct =
 		totalOfertado > 0
 			? Math.round(((totalOfertado - saldo) / totalOfertado) * 100)
 			: 0;
-	const isSoldOut = saldo <= 0;
+	const isSoldOut = maxAvailable <= 0;
 
 	return (
 		<div
@@ -165,12 +171,12 @@ function ItemCard({
 			}`}
 		>
 			{/* ── Image Area ── */}
-			<div className="relative bg-slate-50 h-44 overflow-hidden">
+			<div className="relative bg-slate-50 h-44 overflow-hidden flex items-center justify-center p-2">
 				{item.url_imagem ? (
 					<img
 						src={item.url_imagem}
 						alt={item.descricao_especificacao}
-						className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+						className="max-w-full max-h-full object-contain transition-transform duration-500 group-hover:scale-[1.03]"
 						onError={(e) => {
 							(e.target as HTMLImageElement).style.display = "none";
 						}}
@@ -298,13 +304,13 @@ function ItemCard({
 							<input
 								type="number"
 								min={1}
-								max={Math.max(1, saldo)}
+								max={Math.max(1, maxAvailable)}
 								value={qty}
 								onChange={(e) =>
 									onQtyChange(
 										Math.max(
 											1,
-											Math.min(saldo, Number.parseInt(e.target.value, 10) || 1),
+											Math.min(maxAvailable, Number.parseInt(e.target.value, 10) || 1),
 										),
 									)
 								}
@@ -351,6 +357,7 @@ function ItemTableRow({
 	qty,
 	onQtyChange,
 	isInCart,
+	tipoAdesao,
 }: {
 	item: ItemSearchResponse;
 	isAdding: boolean;
@@ -360,10 +367,16 @@ function ItemTableRow({
 	qty: number;
 	onQtyChange: (v: number) => void;
 	isInCart: boolean;
+	tipoAdesao: "direta" | "carona";
 }) {
 	const saldo = Number.parseFloat(item.quantidade_saldo_disponivel);
 	const totalOfertado = Number.parseFloat(item.quantidade_total_ofertada);
-	const isSoldOut = saldo <= 0;
+	const percentual = item.ata.regras_carona?.[0]?.percentual_maximo_do_saldo
+		? Number.parseFloat(item.ata.regras_carona[0].percentual_maximo_do_saldo)
+		: 50;
+	const maxCaronaQty = Math.floor(totalOfertado * percentual / 100);
+	const maxAvailable = tipoAdesao === "direta" ? saldo : maxCaronaQty;
+	const isSoldOut = maxAvailable <= 0;
 
 	return (
 		<tr
@@ -395,13 +408,13 @@ function ItemTableRow({
 						<input
 							type="number"
 							min={1}
-							max={Math.max(1, saldo)}
+							max={Math.max(1, maxAvailable)}
 							value={qty}
 							onChange={(e) =>
 								onQtyChange(
 									Math.max(
 										1,
-										Math.min(saldo, Number.parseInt(e.target.value, 10) || 1),
+										Math.min(maxAvailable, Number.parseInt(e.target.value, 10) || 1),
 									),
 								)
 							}
@@ -471,10 +484,7 @@ export default function BuyerCatalog({
 	// View mode
 	const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
-	// Type determination cache: ATA ID → participants orgao_ids
-	const [participantsCache, setParticipantsCache] = useState<
-		Record<string, string[]>
-	>({});
+
 
 	// Add-to-cart state
 	const [addingItemId, setAddingItemId] = useState<string | null>(null);
@@ -562,53 +572,17 @@ export default function BuyerCatalog({
 		listSuppliers().then(setSuppliers).catch(console.error);
 	}, []);
 
-	/**
-	 * Determines the adhesion type by checking if the buyer's organ
-	 * is listed as a participant of the item's ATA.
-	 * Falls back to fetching ATA detail if not cached.
-	 */
-	const getTipoAdesao = async (
-		item: ItemSearchResponse,
-	): Promise<"direta" | "carona"> => {
-		if (!orgaoCompradorId) return "carona";
-
-		// Check cache
-		const cached = participantsCache[item.ata.id];
-		if (cached) {
-			return cached.includes(orgaoCompradorId) ? "direta" : "carona";
-		}
-
-		// Fetch ATA detail to get participants
-		try {
-			const ataDetail = await getAta(item.ata.id);
-			const orgaos: string[] = [];
-			for (const ataItem of ataDetail.items) {
-				if (ataItem.participantes) {
-					for (const p of ataItem.participantes) {
-						if (!orgaos.includes(p.orgao_id)) {
-							orgaos.push(p.orgao_id);
-						}
-					}
-				}
-			}
-			setParticipantsCache((prev) => ({
-				...prev,
-				[item.ata.id]: orgaos,
-			}));
-			return orgaos.includes(orgaoCompradorId) ? "direta" : "carona";
-		} catch {
-			return "carona";
-		}
-	};
-
 	const handleStartAdd = async (item: ItemSearchResponse) => {
 		setAddingItemId(item.id);
 		setAddQty(1);
 	};
 
-	const handleConfirmAdd = async (item: ItemSearchResponse) => {
+	const handleConfirmAdd = (item: ItemSearchResponse) => {
 		if (addQty < 1) return;
-		const tipo = await getTipoAdesao(item);
+		const isParticipant = item.participantes?.some(
+			(p) => p.orgao_id === orgaoCompradorId,
+		);
+		const tipo = isParticipant ? "direta" : "carona";
 		onAddToCart?.({ item, qty: addQty, type: tipo });
 		setAddingItemId(null);
 		setAddQty(1);
@@ -931,13 +905,10 @@ export default function BuyerCatalog({
 						{viewMode === "grid" && (
 							<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
 								{items.map((item) => {
-									const cachedOrgaos = participantsCache[item.ata.id];
-									const tipo =
-										cachedOrgaos && orgaoCompradorId
-											? cachedOrgaos.includes(orgaoCompradorId)
-												? "direta"
-												: "carona"
-											: null;
+									const isParticipant = item.participantes?.some(
+										(p) => p.orgao_id === orgaoCompradorId,
+									);
+									const tipo = isParticipant ? "direta" : "carona";
 									return (
 										<ItemCard
 											key={item.id}
@@ -989,22 +960,29 @@ export default function BuyerCatalog({
 										</tr>
 									</thead>
 									<tbody className="divide-y divide-slate-955/8">
-										{items.map((item) => (
-											<ItemTableRow
-												key={item.id}
-												item={item}
-												isAdding={addingItemId === item.id}
-												onStartAdd={() => handleStartAdd(item)}
-												onConfirmAdd={() => handleConfirmAdd(item)}
-												onCancelAdd={() => {
-													setAddingItemId(null);
-													setAddQty(1);
-												}}
-												qty={addQty}
-												onQtyChange={setAddQty}
-												isInCart={cartItemIds?.has(item.id) ?? false}
-											/>
-										))}
+										{items.map((item) => {
+											const isParticipant = item.participantes?.some(
+												(p) => p.orgao_id === orgaoCompradorId,
+											);
+											const tipo = isParticipant ? "direta" : "carona";
+											return (
+												<ItemTableRow
+													key={item.id}
+													item={item}
+													isAdding={addingItemId === item.id}
+													onStartAdd={() => handleStartAdd(item)}
+													onConfirmAdd={() => handleConfirmAdd(item)}
+													onCancelAdd={() => {
+														setAddingItemId(null);
+														setAddQty(1);
+													}}
+													qty={addQty}
+													onQtyChange={setAddQty}
+													tipoAdesao={tipo || "carona"}
+													isInCart={cartItemIds?.has(item.id) ?? false}
+												/>
+											);
+										})}
 									</tbody>
 								</table>
 							</div>

@@ -10,6 +10,7 @@ const TABS: TabItem[] = [
 	{ key: "autorizacoes", path: "autorizacoes", label: "Autorizações" },
 	{ key: "cadastro", path: "cadastro", label: "Upload ATA" },
 	{ key: "monitoramento", path: "monitoramento", label: "Monitoramento" },
+	{ key: "cadastros", path: "cadastros", label: "Cadastros" },
 ];
 
 export default function ManagerTabs({ activeTab }: { activeTab: string }) {
