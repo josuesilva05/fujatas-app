@@ -405,9 +405,8 @@ export default function SupplierBalances({ user }: SupplierBalancesProps) {
 
 	function renderBalances() {
 		const showItems = filteredItems.length > 0;
-		const showEmptySearch =
-			filteredItems.length === 0 && items.length > 0 && debouncedSearch !== "";
-		const showApiEmpty = items.length === 0 || filteredItems.length === 0;
+		const showEmptySearch = filteredItems.length === 0 && debouncedSearch !== "";
+		const showApiEmpty = items.length === 0 && debouncedSearch === "";
 
 		return (
 			<>
