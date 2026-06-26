@@ -257,15 +257,17 @@ export default function SupplierBalances({ user }: SupplierBalancesProps) {
 				{/* Admin: supplier list */}
 				{isAdminViewing && !selectedSupplierId && (
 					<>
-						<div className="relative w-full max-w-md">
-							<Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" />
-							<input
-								type="text"
-								value={supplierQ}
-								onChange={(e) => handleSupplierSearchChange(e.target.value)}
-								placeholder="Buscar fornecedor..."
-								className="w-full bg-[#F4F7FA]/50 border border-slate-955/10 pl-10 pr-4 py-2.5 text-sm font-sans text-slate-900 placeholder:text-slate-400 focus:outline-none focus-visible:ring-1 focus-visible:ring-blue-600"
-							/>
+						<div className="flex items-center gap-3">
+							<div className="relative flex-1">
+								<Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+								<input
+									type="text"
+									value={supplierQ}
+									onChange={(e) => handleSupplierSearchChange(e.target.value)}
+									placeholder="Buscar fornecedor..."
+									className="w-full bg-[#F4F7FA]/50 border border-slate-955/10 pl-10 pr-4 py-2 text-xs font-sans text-slate-900 placeholder:text-slate-400 focus:outline-none focus-visible:ring-1 focus-visible:ring-blue-600"
+								/>
+							</div>
 						</div>
 
 						{loadingSuppliers ? (
@@ -409,15 +411,17 @@ export default function SupplierBalances({ user }: SupplierBalancesProps) {
 
 		return (
 			<>
-				<div className="relative w-full max-w-md">
-					<Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" />
-					<input
-						type="text"
-						value={itemSearch}
-						onChange={(e) => setItemSearch(e.target.value)}
-						placeholder="Buscar item por descrição..."
-						className="w-full bg-[#F4F7FA]/50 border border-slate-955/10 pl-10 pr-4 py-2.5 text-sm font-sans text-slate-900 placeholder:text-slate-400 focus:outline-none focus-visible:ring-1 focus-visible:ring-blue-600"
-					/>
+				<div className="flex items-center gap-3">
+					<div className="relative flex-1">
+						<Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+						<input
+							type="text"
+							value={itemSearch}
+							onChange={(e) => setItemSearch(e.target.value)}
+							placeholder="Buscar item por descrição..."
+							className="w-full bg-[#F4F7FA]/50 border border-slate-955/10 pl-10 pr-4 py-2 text-xs font-sans text-slate-900 placeholder:text-slate-400 focus:outline-none focus-visible:ring-1 focus-visible:ring-blue-600"
+						/>
+					</div>
 				</div>
 
 				{loading ? (

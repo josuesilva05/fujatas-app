@@ -109,6 +109,7 @@ export default function SupplierSales({ user }: SupplierSalesProps) {
 	const [totalItems, setTotalItems] = useState(0);
 	const [page, setPage] = useState(1);
 	const [pageSize] = useState(8);
+	const [orderSearch, setOrderSearch] = useState("");
 
 	const supplierDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(
 		null,
@@ -240,15 +241,17 @@ export default function SupplierSales({ user }: SupplierSalesProps) {
 				{/* Admin: supplier list */}
 				{isAdminViewing && !selectedSupplierId && (
 					<>
-						<div className="relative w-full max-w-md">
-							<Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" />
-							<input
-								type="text"
-								value={supplierQ}
-								onChange={(e) => handleSupplierSearchChange(e.target.value)}
-								placeholder="Buscar fornecedor..."
-								className="w-full bg-[#F4F7FA]/50 border border-slate-955/10 pl-10 pr-4 py-2.5 text-sm font-sans text-slate-900 placeholder:text-slate-400 focus:outline-none focus-visible:ring-1 focus-visible:ring-blue-600"
-							/>
+						<div className="flex items-center gap-3">
+							<div className="relative flex-1">
+								<Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+								<input
+									type="text"
+									value={supplierQ}
+									onChange={(e) => handleSupplierSearchChange(e.target.value)}
+									placeholder="Buscar fornecedor..."
+									className="w-full bg-[#F4F7FA]/50 border border-slate-955/10 pl-10 pr-4 py-2 text-xs font-sans text-slate-900 placeholder:text-slate-400 focus:outline-none focus-visible:ring-1 focus-visible:ring-blue-600"
+								/>
+							</div>
 						</div>
 
 						{loadingSuppliers ? (
@@ -401,71 +404,109 @@ export default function SupplierSales({ user }: SupplierSalesProps) {
 			);
 		}
 
+		const filteredOrders = orderSearch
+			? orders.filter(
+					(o) =>
+						o.orgao_comprador?.nome
+							.toLowerCase()
+							.includes(orderSearch.toLowerCase()) ||
+						(o.orgao_comprador?.cnpj ?? "")
+							.toLowerCase()
+							.includes(orderSearch.toLowerCase()) ||
+						o.status.toLowerCase().includes(orderSearch.toLowerCase()),
+				)
+			: orders;
+
 		return (
 			<>
+				<div className="flex items-center gap-3 mb-4">
+					<div className="relative flex-1">
+						<Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+						<input
+							type="text"
+							value={orderSearch}
+							onChange={(e) => setOrderSearch(e.target.value)}
+							placeholder="Buscar por órgão, CNPJ ou status..."
+							className="w-full bg-[#F4F7FA]/50 border border-slate-955/10 pl-10 pr-4 py-2 text-xs font-sans text-slate-900 placeholder:text-slate-400 focus:outline-none focus-visible:ring-1 focus-visible:ring-blue-600"
+						/>
+					</div>
+				</div>
+				{filteredOrders.length === 0 ? (
+					<div className="border border-dashed border-slate-955/10 bg-[#F8FAFE] p-10 text-center">
+						<p className="text-xs text-slate-500 font-sans">
+							Nenhum pedido encontrado para esta busca.
+						</p>
+					</div>
+				) : (
 				<div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 					<div className="lg:col-span-8 space-y-4">
-						{orders.map((order) => {
-							const orderDate = new Date(order.data_pedido).toLocaleDateString("pt-BR");
+						{filteredOrders.map((order) => {
+							const orderDate = new Date(order.data_pedido).toLocaleDateString(
+								"pt-BR",
+							);
 							const s = STATUS_STYLES[order.status] || STATUS_STYLES.PENDENTE;
 							return (
-							<div
-								key={order.id}
-								className="border border-slate-955/10 bg-white p-4 hover:border-blue-600 hover:shadow-sm transition"
-							>
-								<div className="flex justify-between items-start border-b border-slate-955/10 pb-3 mb-3">
-									<div className="flex items-center gap-2">
-										<span className={`w-2 h-2 rounded-full inline-block ${s.color.replace("text-", "bg-").replace("800", "500")}`} />
+								<div
+									key={order.id}
+									className="border border-slate-955/10 bg-white p-4 hover:border-blue-600 hover:shadow-sm transition"
+								>
+									<div className="flex justify-between items-start border-b border-slate-955/10 pb-3 mb-3">
+										<div className="flex items-center gap-2">
+											<span
+												className={`w-2 h-2 rounded-full inline-block ${s.color.replace("text-", "bg-").replace("800", "500")}`}
+											/>
+											<div>
+												<h3 className="font-semibold text-slate-900 text-sm">
+													{order.orgao_comprador?.nome}
+												</h3>
+												<p className="text-xs text-slate-500 mt-0.5">
+													{order.orgao_comprador?.cnpj}
+												</p>
+											</div>
+										</div>
+										<span
+											className={`text-[10px] font-bold font-sans uppercase tracking-wider px-2 py-0.5 border shrink-0 ${s.color} ${s.bg} ${s.border}`}
+										>
+											{s.label}
+										</span>
+									</div>
+									<div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
 										<div>
-											<h3 className="font-semibold text-slate-900 text-sm">
-												{order.orgao_comprador?.nome}
-											</h3>
-											<p className="text-xs text-slate-500 mt-0.5">
-												{order.orgao_comprador?.cnpj}
-											</p>
+											<span className="block text-[9px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">
+												Tipo
+											</span>
+											<span
+												className={`text-sm font-medium ${order.tipo_adesao === "DIRETA" ? "text-blue-700" : "text-amber-700"}`}
+											>
+												{order.tipo_adesao}
+											</span>
+										</div>
+										<div>
+											<span className="block text-[9px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">
+												Itens
+											</span>
+											<span className="text-sm text-slate-900 font-medium">
+												{order.itens?.length ?? 0}
+											</span>
+										</div>
+										<div>
+											<span className="block text-[9px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">
+												Data
+											</span>
+											<span className="text-sm text-slate-900 font-medium">
+												{orderDate}
+											</span>
+										</div>
+										<div>
+											<span className="block text-[9px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">
+												ID
+											</span>
+											<span className="text-sm text-slate-500 font-mono">
+												#{order.id.slice(0, 8)}
+											</span>
 										</div>
 									</div>
-									<span
-										className={`text-[10px] font-bold font-sans uppercase tracking-wider px-2 py-0.5 border shrink-0 ${s.color} ${s.bg} ${s.border}`}
-									>
-										{s.label}
-									</span>
 								</div>
-								<div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-									<div>
-										<span className="block text-[9px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">
-											Tipo
-										</span>
-										<span className={`text-sm font-medium ${order.tipo_adesao === "DIRETA" ? "text-blue-700" : "text-amber-700"}`}>
-											{order.tipo_adesao}
-										</span>
-									</div>
-									<div>
-										<span className="block text-[9px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">
-											Itens
-										</span>
-										<span className="text-sm text-slate-900 font-medium">
-											{order.itens?.length ?? 0}
-										</span>
-									</div>
-									<div>
-										<span className="block text-[9px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">
-											Data
-										</span>
-										<span className="text-sm text-slate-900 font-medium">
-											{orderDate}
-										</span>
-									</div>
-									<div>
-										<span className="block text-[9px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">
-											ID
-										</span>
-										<span className="text-sm text-slate-500 font-mono">
-											#{order.id.slice(0, 8)}
-										</span>
-									</div>
-								</div>
-							</div>
 							);
 						})}
 					</div>
@@ -523,6 +564,7 @@ export default function SupplierSales({ user }: SupplierSalesProps) {
 						</div>
 					</div>
 				</div>
+				)}
 
 				<div className="flex flex-col items-center gap-4 pt-6 border-t border-slate-955/10">
 					<div className="flex items-center gap-1 flex-wrap justify-center">
