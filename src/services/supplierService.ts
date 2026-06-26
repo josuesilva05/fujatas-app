@@ -18,6 +18,8 @@ function extractPage<T>(
 	data: unknown,
 	limit: number,
 ): SupplierItemsResponse<T> {
+	limit = Math.max(1, limit);
+
 	if (Array.isArray(data)) {
 		return {
 			content: data as T[],
