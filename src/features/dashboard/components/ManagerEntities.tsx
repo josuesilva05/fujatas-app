@@ -12,8 +12,18 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import Button from "@/components/ui/Button";
-import { listOrgans, createOrgan, updateOrgan, deleteOrgan } from "@/services/organs";
-import { listSuppliers, createSupplier, updateSupplier, deleteSupplier } from "@/services/suppliers";
+import {
+	createOrgan,
+	deleteOrgan,
+	listOrgans,
+	updateOrgan,
+} from "@/services/organs";
+import {
+	createSupplier,
+	deleteSupplier,
+	listSuppliers,
+	updateSupplier,
+} from "@/services/suppliers";
 import type { Organ } from "@/types/organ";
 import type { Supplier } from "@/types/supplier";
 import ManagerTabs from "./ManagerTabs";
@@ -35,7 +45,8 @@ function formatCNPJ(val: string) {
 	const cleaned = val.replace(/\D/g, "");
 	if (cleaned.length <= 2) return cleaned;
 	if (cleaned.length <= 5) return `${cleaned.slice(0, 2)}.${cleaned.slice(2)}`;
-	if (cleaned.length <= 8) return `${cleaned.slice(0, 2)}.${cleaned.slice(2, 5)}.${cleaned.slice(5)}`;
+	if (cleaned.length <= 8)
+		return `${cleaned.slice(0, 2)}.${cleaned.slice(2, 5)}.${cleaned.slice(5)}`;
 	if (cleaned.length <= 12)
 		return `${cleaned.slice(0, 2)}.${cleaned.slice(2, 5)}.${cleaned.slice(5, 8)}/${cleaned.slice(8)}`;
 	return `${cleaned.slice(0, 2)}.${cleaned.slice(2, 5)}.${cleaned.slice(5, 8)}/${cleaned.slice(8, 12)}-${cleaned.slice(12, 14)}`;
@@ -45,19 +56,23 @@ function formatCPF(val: string) {
 	const cleaned = val.replace(/\D/g, "");
 	if (cleaned.length <= 3) return cleaned;
 	if (cleaned.length <= 6) return `${cleaned.slice(0, 3)}.${cleaned.slice(3)}`;
-	if (cleaned.length <= 9) return `${cleaned.slice(0, 3)}.${cleaned.slice(3, 6)}.${cleaned.slice(6)}`;
+	if (cleaned.length <= 9)
+		return `${cleaned.slice(0, 3)}.${cleaned.slice(3, 6)}.${cleaned.slice(6)}`;
 	return `${cleaned.slice(0, 3)}.${cleaned.slice(3, 6)}.${cleaned.slice(6, 9)}-${cleaned.slice(9, 11)}`;
 }
 
 function formatPhone(val: string) {
 	const cleaned = val.replace(/\D/g, "");
 	if (cleaned.length <= 2) return cleaned;
-	if (cleaned.length <= 7) return `(${cleaned.slice(0, 2)}) ${cleaned.slice(2)}`;
+	if (cleaned.length <= 7)
+		return `(${cleaned.slice(0, 2)}) ${cleaned.slice(2)}`;
 	return `(${cleaned.slice(0, 2)}) ${cleaned.slice(2, 7)}-${cleaned.slice(7, 11)}`;
 }
 
 export default function ManagerEntities({ user: _user }: ManagerEntitiesProps) {
-	const [activeSubTab, setActiveSubTab] = useState<"suppliers" | "organs">("suppliers");
+	const [activeSubTab, setActiveSubTab] = useState<"suppliers" | "organs">(
+		"suppliers",
+	);
 	const [searchQuery, setSearchQuery] = useState("");
 
 	// Data States
@@ -97,7 +112,9 @@ export default function ManagerEntities({ user: _user }: ManagerEntitiesProps) {
 	// Organ Form States
 	const [oCnpj, setOCnpj] = useState("");
 	const [oNome, setONome] = useState("");
-	const [oTipo, setOTipo] = useState<"FEDERAL" | "ESTADUAL" | "MUNICIPAL">("ESTADUAL");
+	const [oTipo, setOTipo] = useState<"FEDERAL" | "ESTADUAL" | "MUNICIPAL">(
+		"ESTADUAL",
+	);
 	const [oEndereco, setOEndereco] = useState("");
 
 	// Fetch Data
@@ -131,7 +148,7 @@ export default function ManagerEntities({ user: _user }: ManagerEntitiesProps) {
 			s.razao_social.toLowerCase().includes(q) ||
 			s.cnpj.includes(q) ||
 			cnpjRaw.includes(q) ||
-			(s.nome_representante && s.nome_representante.toLowerCase().includes(q))
+			s.nome_representante?.toLowerCase().includes(q)
 		);
 	});
 
@@ -176,7 +193,10 @@ export default function ManagerEntities({ user: _user }: ManagerEntitiesProps) {
 	};
 
 	// Open edit modal (Edit mode)
-	const handleOpenEditModal = (entity: Supplier | Organ, type: "supplier" | "organ") => {
+	const handleOpenEditModal = (
+		entity: Supplier | Organ,
+		type: "supplier" | "organ",
+	) => {
 		setModalType(type);
 		setIsEditMode(true);
 		setEditingId(entity.id);
@@ -189,7 +209,9 @@ export default function ManagerEntities({ user: _user }: ManagerEntitiesProps) {
 			setSRazaoSocial(s.razao_social);
 			setSEndereco(s.endereco || "");
 			setSNomeRepresentante(s.nome_representante || "");
-			setSCpfRepresentante(s.cpf_representante ? formatCPF(s.cpf_representante) : "");
+			setSCpfRepresentante(
+				s.cpf_representante ? formatCPF(s.cpf_representante) : "",
+			);
 			setSTelefone(s.telefone ? formatPhone(s.telefone) : "");
 			setSEmail(s.email || "");
 		} else {
@@ -203,7 +225,11 @@ export default function ManagerEntities({ user: _user }: ManagerEntitiesProps) {
 	};
 
 	// Open delete confirmation modal
-	const handleOpenDeleteModal = (id: string, name: string, type: "supplier" | "organ") => {
+	const handleOpenDeleteModal = (
+		id: string,
+		name: string,
+		type: "supplier" | "organ",
+	) => {
 		setDeletingEntity({ id, name, type });
 		setDeleteError("");
 		setIsDeleteModalOpen(true);
@@ -240,7 +266,9 @@ export default function ManagerEntities({ user: _user }: ManagerEntitiesProps) {
 
 				if (isEditMode && editingId) {
 					const updated = await updateSupplier(editingId, supplierPayload);
-					setSuppliers((prev) => prev.map((item) => (item.id === editingId ? updated : item)));
+					setSuppliers((prev) =>
+						prev.map((item) => (item.id === editingId ? updated : item)),
+					);
 					setSuccessMsg("Fornecedor atualizado com sucesso!");
 				} else {
 					const created = await createSupplier(supplierPayload);
@@ -271,7 +299,9 @@ export default function ManagerEntities({ user: _user }: ManagerEntitiesProps) {
 
 				if (isEditMode && editingId) {
 					const updated = await updateOrgan(editingId, organPayload);
-					setOrgans((prev) => prev.map((item) => (item.id === editingId ? updated : item)));
+					setOrgans((prev) =>
+						prev.map((item) => (item.id === editingId ? updated : item)),
+					);
 					setSuccessMsg("Órgão Público atualizado com sucesso!");
 				} else {
 					const created = await createOrgan(organPayload);
@@ -284,9 +314,14 @@ export default function ManagerEntities({ user: _user }: ManagerEntitiesProps) {
 					resetForms();
 				}, 1500);
 			}
-		} catch (err: any) {
+		} catch (err) {
 			console.error(err);
-			const apiError = err.response?.data?.detail || err.message || "Erro desconhecido ao processar.";
+			const apiError =
+				(err as { response?: { data?: { detail?: string } }; message?: string })
+					.response?.data?.detail ||
+				(err as { response?: { data?: { detail?: string } }; message?: string })
+					.message ||
+				"Erro desconhecido ao processar.";
 			setModalError(apiError);
 		} finally {
 			setSubmitting(false);
@@ -302,16 +337,23 @@ export default function ManagerEntities({ user: _user }: ManagerEntitiesProps) {
 		try {
 			if (deletingEntity.type === "supplier") {
 				await deleteSupplier(deletingEntity.id);
-				setSuppliers((prev) => prev.filter((item) => item.id !== deletingEntity.id));
+				setSuppliers((prev) =>
+					prev.filter((item) => item.id !== deletingEntity.id),
+				);
 			} else {
 				await deleteOrgan(deletingEntity.id);
-				setOrgans((prev) => prev.filter((item) => item.id !== deletingEntity.id));
+				setOrgans((prev) =>
+					prev.filter((item) => item.id !== deletingEntity.id),
+				);
 			}
 			setIsDeleteModalOpen(false);
 			setDeletingEntity(null);
-		} catch (err: any) {
+		} catch (err) {
 			console.error(err);
-			const apiError = err.response?.data?.detail || "Erro ao excluir entidade. Ela pode ter atas, itens ou usuários vinculados.";
+			const apiError =
+				(err as { response?: { data?: { detail?: string } } }).response?.data
+					?.detail ||
+				"Erro ao excluir entidade. Ela pode ter atas, itens ou usuários vinculados.";
 			setDeleteError(apiError);
 		} finally {
 			setDeleting(false);
@@ -415,12 +457,18 @@ export default function ManagerEntities({ user: _user }: ManagerEntitiesProps) {
 						</div>
 
 						<Button
-							onClick={() => handleOpenCreateModal(activeSubTab === "suppliers" ? "supplier" : "organ")}
+							onClick={() =>
+								handleOpenCreateModal(
+									activeSubTab === "suppliers" ? "supplier" : "organ",
+								)
+							}
 							className="h-9 px-4 bg-slate-950 hover:bg-slate-800 text-white rounded-none uppercase tracking-wider text-[10px] font-bold flex items-center justify-center gap-1.5 shadow-sm border border-slate-955/15"
 						>
 							<Plus className="w-4 h-4" />
 							<span>
-								{activeSubTab === "suppliers" ? "Novo Fornecedor" : "Novo Órgão"}
+								{activeSubTab === "suppliers"
+									? "Novo Fornecedor"
+									: "Novo Órgão"}
 							</span>
 						</Button>
 					</div>
@@ -483,7 +531,9 @@ export default function ManagerEntities({ user: _user }: ManagerEntitiesProps) {
 															{s.nome_representante || "—"}
 														</div>
 														<div className="text-[10px] text-slate-400 font-mono">
-															{s.cpf_representante ? formatCPF(s.cpf_representante) : "—"}
+															{s.cpf_representante
+																? formatCPF(s.cpf_representante)
+																: "—"}
 														</div>
 													</td>
 													<td className="px-5 py-3.5 text-xs text-slate-600">
@@ -492,20 +542,31 @@ export default function ManagerEntities({ user: _user }: ManagerEntitiesProps) {
 															{s.telefone ? formatPhone(s.telefone) : "—"}
 														</div>
 													</td>
-													<td className="px-5 py-3.5 text-xs text-slate-500 max-w-xs truncate" title={s.endereco}>
+													<td
+														className="px-5 py-3.5 text-xs text-slate-500 max-w-xs truncate"
+														title={s.endereco}
+													>
 														{s.endereco || "—"}
 													</td>
 													<td className="px-5 py-3.5 text-xs text-right whitespace-nowrap">
 														<div className="inline-flex items-center gap-1.5">
 															<button
-																onClick={() => handleOpenEditModal(s, "supplier")}
+																onClick={() =>
+																	handleOpenEditModal(s, "supplier")
+																}
 																className="p-1.5 text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition cursor-pointer"
 																title="Editar Fornecedor"
 															>
 																<Edit3 className="w-3.5 h-3.5" />
 															</button>
 															<button
-																onClick={() => handleOpenDeleteModal(s.id, s.razao_social, "supplier")}
+																onClick={() =>
+																	handleOpenDeleteModal(
+																		s.id,
+																		s.razao_social,
+																		"supplier",
+																	)
+																}
 																className="p-1.5 text-red-600 hover:text-red-800 hover:bg-red-50 transition cursor-pointer"
 																title="Excluir Fornecedor"
 															>
@@ -570,7 +631,10 @@ export default function ManagerEntities({ user: _user }: ManagerEntitiesProps) {
 														{o.tipo}
 													</span>
 												</td>
-												<td className="px-5 py-3.5 text-xs text-slate-500 max-w-xs truncate" title={o.endereco}>
+												<td
+													className="px-5 py-3.5 text-xs text-slate-500 max-w-xs truncate"
+													title={o.endereco}
+												>
 													{o.endereco || "—"}
 												</td>
 												<td className="px-5 py-3.5 text-xs text-right whitespace-nowrap">
@@ -583,7 +647,9 @@ export default function ManagerEntities({ user: _user }: ManagerEntitiesProps) {
 															<Edit3 className="w-3.5 h-3.5" />
 														</button>
 														<button
-															onClick={() => handleOpenDeleteModal(o.id, o.nome, "organ")}
+															onClick={() =>
+																handleOpenDeleteModal(o.id, o.nome, "organ")
+															}
 															className="p-1.5 text-red-600 hover:text-red-800 hover:bg-red-50 transition cursor-pointer"
 															title="Excluir Órgão"
 														>
@@ -706,7 +772,9 @@ export default function ManagerEntities({ user: _user }: ManagerEntitiesProps) {
 												placeholder="000.000.000-00"
 												maxLength={14}
 												value={sCpfRepresentante}
-												onChange={(e) => setSCpfRepresentante(formatCPF(e.target.value))}
+												onChange={(e) =>
+													setSCpfRepresentante(formatCPF(e.target.value))
+												}
 												className="w-full px-3 py-1.5 text-xs border border-slate-300 focus:outline-none focus:border-slate-800 font-light"
 											/>
 										</div>
@@ -721,7 +789,9 @@ export default function ManagerEntities({ user: _user }: ManagerEntitiesProps) {
 												placeholder="(00) 00000-0000"
 												maxLength={15}
 												value={sTelefone}
-												onChange={(e) => setSTelefone(formatPhone(e.target.value))}
+												onChange={(e) =>
+													setSTelefone(formatPhone(e.target.value))
+												}
 												className="w-full px-3 py-1.5 text-xs border border-slate-300 focus:outline-none focus:border-slate-800 font-light"
 											/>
 										</div>
@@ -776,7 +846,14 @@ export default function ManagerEntities({ user: _user }: ManagerEntitiesProps) {
 										<select
 											required
 											value={oTipo}
-											onChange={(e) => setOTipo(e.target.value as any)}
+											onChange={(e) =>
+												setOTipo(
+													e.target.value as
+														| "FEDERAL"
+														| "ESTADUAL"
+														| "MUNICIPAL",
+												)
+											}
 											className="w-full px-3 py-1.5 text-xs border border-slate-300 bg-white focus:outline-none focus:border-slate-800 font-light"
 										>
 											<option value="FEDERAL">FEDERAL</option>
@@ -814,7 +891,9 @@ export default function ManagerEntities({ user: _user }: ManagerEntitiesProps) {
 									disabled={submitting}
 									className="h-9 px-5 bg-slate-950 hover:bg-slate-800 text-white rounded-none uppercase tracking-wider text-xs font-bold font-sans flex items-center gap-1.5 disabled:opacity-50"
 								>
-									{submitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+									{submitting && (
+										<Loader2 className="w-3.5 h-3.5 animate-spin" />
+									)}
 									<span>Salvar</span>
 								</Button>
 							</div>
@@ -866,8 +945,9 @@ export default function ManagerEntities({ user: _user }: ManagerEntitiesProps) {
 								?
 							</p>
 							<p className="text-[10px] text-slate-400 leading-normal bg-slate-50 p-2 border border-slate-200 font-light">
-								Esta ação não poderá ser desfeita. Se esta entidade possuir atas, itens de
-								ata ou usuários vinculados, a exclusão será bloqueada por razões de integridade de dados.
+								Esta ação não poderá ser desfeita. Se esta entidade possuir
+								atas, itens de ata ou usuários vinculados, a exclusão será
+								bloqueada por razões de integridade de dados.
 							</p>
 						</div>
 

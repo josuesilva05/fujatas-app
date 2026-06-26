@@ -1,3 +1,4 @@
+import { ptBR } from "date-fns/locale";
 import {
 	ArrowLeft,
 	ArrowRight,
@@ -18,9 +19,12 @@ import {
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Button from "@/components/ui/Button";
 import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { ptBR } from "date-fns/locale";
-import { createAta, uploadItemImage, parseAtaPdf } from "@/services/atas";
+import {
+	Popover,
+	PopoverContent,
+	PopoverTrigger,
+} from "@/components/ui/popover";
+import { createAta, parseAtaPdf, uploadItemImage } from "@/services/atas";
 import { listOrgans } from "@/services/organs";
 import { listSuppliers } from "@/services/suppliers";
 import type { Organ } from "@/types/organ";
@@ -126,7 +130,9 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 	]);
 
 	// Controle de qual item está fazendo upload de imagem (por índice)
-	const [uploadingImageIdx, setUploadingImageIdx] = useState<number | null>(null);
+	const [uploadingImageIdx, setUploadingImageIdx] = useState<number | null>(
+		null,
+	);
 	const [uploadImageError, setUploadImageError] = useState<string>("");
 
 	// Step 4 — Regras de Carona
@@ -154,46 +160,59 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 		setParsingPdf(true);
 		try {
 			const data = await parseAtaPdf(file);
-			
+
 			// Recarrega fornecedores do banco
 			const suppliersList = await listSuppliers();
 			setSuppliers(suppliersList);
-			
+
 			// Preenche dados da ATA (Step 1)
 			if (data.numero_ata) setNumeroAta(data.numero_ata);
-			if (data.processo_administrativo) setProcessoAdm(data.processo_administrativo);
+			if (data.processo_administrativo)
+				setProcessoAdm(data.processo_administrativo);
 			if (data.numero_pregao) setNumeroPregao(data.numero_pregao);
 			if (data.data_assinatura) setDataAssinatura(data.data_assinatura);
 			if (data.data_publicacao) setDataPublicacao(data.data_publicacao);
 			if (data.vigencia_meses) setVigenciaMeses(data.vigencia_meses);
-			
+
 			// Preenche grupos (Step 2)
 			if (data.grupos && data.grupos.length > 0) {
-				setGrupos(data.grupos.map((g: any) => ({
-					numero_grupo: g.numero_grupo,
-					descricao: g.descricao || ""
-				})));
+				setGrupos(
+					data.grupos.map((g) => ({
+						numero_grupo: g.numero_grupo,
+						descricao: g.descricao || "",
+					})),
+				);
 			}
-			
+
 			// Preenche itens (Step 3)
 			if (data.items && data.items.length > 0) {
-				setItens(data.items.map((item: any) => ({
-					numero_item: item.numero_item,
-					grupo_numero: item.grupo_numero || "G-01",
-					fornecedor_id: item.fornecedor_id || "",
-					descricao_especificacao: item.descricao_especificacao || "",
-					unidade_medida: item.unidade_medida || "UN",
-					marca_modelo: item.marca_modelo || "",
-					url_imagem: "",
-					valor_unitario: item.valor_unitario || 0,
-					quantidade_manual: item.quantidade_manual || "",
-					participantes: []
-				})));
+				setItens(
+					data.items.map((item) => ({
+						numero_item: item.numero_item,
+						grupo_numero: item.grupo_numero || "G-01",
+						fornecedor_id: item.fornecedor_id || "",
+						descricao_especificacao: item.descricao_especificacao || "",
+						unidade_medida: item.unidade_medida || "UN",
+						marca_modelo: item.marca_modelo || "",
+						url_imagem: "",
+						valor_unitario: item.valor_unitario || 0,
+						quantidade_manual:
+							item.quantidade_manual !== undefined &&
+							item.quantidade_manual !== null &&
+							item.quantidade_manual !== "" &&
+							!Number.isNaN(Number(item.quantidade_manual))
+								? Number(item.quantidade_manual)
+								: "",
+						participantes: [],
+					})),
+				);
 			}
-			
-		} catch (err: any) {
+		} catch (err) {
 			console.error("Erro ao analisar o PDF:", err);
-			const detail = err.response?.data?.detail || "Erro ao analisar o arquivo PDF. Verifique o formato do documento.";
+			const detail =
+				(err as { response?: { data?: { detail?: string } } }).response?.data
+					?.detail ||
+				"Erro ao analisar o arquivo PDF. Verifique o formato do documento.";
 			setPdfError(detail);
 		} finally {
 			setParsingPdf(false);
@@ -312,7 +331,10 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 		if (fieldErrors[errKey]) {
 			setFieldErrors((p) => ({ ...p, [errKey]: "" }));
 		}
-		if (field === "quantidade_manual" && fieldErrors[`item_${idx}_quantidade`]) {
+		if (
+			field === "quantidade_manual" &&
+			fieldErrors[`item_${idx}_quantidade`]
+		) {
 			setFieldErrors((p) => ({ ...p, [`item_${idx}_quantidade`]: "" }));
 		}
 	};
@@ -381,10 +403,7 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 	};
 
 	const handleAddRegra = () => {
-		setRegras([
-			...regras,
-			{ percentual_maximo_do_saldo: 50, descricao: "" },
-		]);
+		setRegras([...regras, { percentual_maximo_do_saldo: 50, descricao: "" }]);
 	};
 
 	const handleRemoveRegra = (idx: number) => {
@@ -404,8 +423,11 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 			setItens(u);
 		} catch (err: unknown) {
 			const axiosErr = err as { response?: { data?: { detail?: string } } };
-			const detail = axiosErr.response?.data?.detail || "Erro ao fazer upload da imagem.";
-			setUploadImageError(typeof detail === "string" ? detail : JSON.stringify(detail));
+			const detail =
+				axiosErr.response?.data?.detail || "Erro ao fazer upload da imagem.";
+			setUploadImageError(
+				typeof detail === "string" ? detail : JSON.stringify(detail),
+			);
 		} finally {
 			setUploadingImageIdx(null);
 		}
@@ -421,7 +443,9 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 
 			if (Object.keys(newFieldErrors).length > 0) {
 				setFieldErrors(newFieldErrors);
-				setErrorMsg("Preencha todos os campos obrigatórios marcados na Etapa 1: Dados da ATA.");
+				setErrorMsg(
+					"Preencha todos os campos obrigatórios marcados na Etapa 1: Dados da ATA.",
+				);
 				return false;
 			}
 			setFieldErrors({});
@@ -436,12 +460,15 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 			}
 			for (let i = 0; i < grupos.length; i++) {
 				if (!grupos[i].numero_grupo.trim()) {
-					newFieldErrors[`grupo_${i}_numero_grupo`] = "Código do Lote é obrigatório";
+					newFieldErrors[`grupo_${i}_numero_grupo`] =
+						"Código do Lote é obrigatório";
 				}
 			}
 			if (Object.keys(newFieldErrors).length > 0) {
 				setFieldErrors(newFieldErrors);
-				setErrorMsg("Preencha todos os códigos de lote em destaque na Etapa 2.");
+				setErrorMsg(
+					"Preencha todos os códigos de lote em destaque na Etapa 2.",
+				);
 				return false;
 			}
 			setFieldErrors({});
@@ -460,19 +487,23 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 					newFieldErrors[`item_${i}_fornecedor_id`] = "Selecione o fornecedor";
 				}
 				if (!item.descricao_especificacao.trim()) {
-					newFieldErrors[`item_${i}_descricao_especificacao`] = "A descrição é obrigatória";
+					newFieldErrors[`item_${i}_descricao_especificacao`] =
+						"A descrição é obrigatória";
 				}
 				if (item.valor_unitario <= 0) {
 					newFieldErrors[`item_${i}_valor_unitario`] = "Deve ser maior que 0";
 				}
 				const qty = getItemQty(item);
 				if (qty <= 0) {
-					newFieldErrors[`item_${i}_quantidade`] = "Quantidade deve ser maior que 0";
+					newFieldErrors[`item_${i}_quantidade`] =
+						"Quantidade deve ser maior que 0";
 				}
 			}
 			if (Object.keys(newFieldErrors).length > 0) {
 				setFieldErrors(newFieldErrors);
-				setErrorMsg("Preencha todos os campos obrigatórios em destaque nos itens na Etapa 3.");
+				setErrorMsg(
+					"Preencha todos os campos obrigatórios em destaque nos itens na Etapa 3.",
+				);
 				return false;
 			}
 			setFieldErrors({});
@@ -813,9 +844,11 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 						)}
 					</div>
 					<p className="text-[10px] text-slate-500 font-light leading-relaxed">
-						Faça upload do documento PDF oficial da ATA de Registro de Preços para preencher automaticamente os campos de dados da ata, lotes/grupos e todos os itens com seus respectivos fornecedores.
+						Faça upload do documento PDF oficial da ATA de Registro de Preços
+						para preencher automaticamente os campos de dados da ata,
+						lotes/grupos e todos os itens com seus respectivos fornecedores.
 					</p>
-					
+
 					<div>
 						<label
 							htmlFor="pdf-ata-upload"
@@ -826,7 +859,9 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 							}`}
 						>
 							<FileText className="w-4 h-4" />
-							{parsingPdf ? "Processando documento..." : "Selecionar PDF da ATA"}
+							{parsingPdf
+								? "Processando documento..."
+								: "Selecionar PDF da ATA"}
 						</label>
 						<input
 							id="pdf-ata-upload"
@@ -857,11 +892,19 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 							id="numeroAta"
 							type="text"
 							value={numeroAta}
-							onChange={(e) => { setNumeroAta(e.target.value); if (fieldErrors.numeroAta) setFieldErrors((p) => ({ ...p, numeroAta: "" })); }}
+							onChange={(e) => {
+								setNumeroAta(e.target.value);
+								if (fieldErrors.numeroAta)
+									setFieldErrors((p) => ({ ...p, numeroAta: "" }));
+							}}
 							placeholder="Ex: ATA-001/2026"
 							className={inputErrCls("numeroAta")}
 						/>
-						{fieldErrors.numeroAta && <p className="text-[9px] text-red-600 font-semibold font-sans mt-0.5">{fieldErrors.numeroAta}</p>}
+						{fieldErrors.numeroAta && (
+							<p className="text-[9px] text-red-600 font-semibold font-sans mt-0.5">
+								{fieldErrors.numeroAta}
+							</p>
+						)}
 					</div>
 
 					<div className="space-y-1.5">
@@ -909,9 +952,7 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 					</div>
 
 					<div className="space-y-1.5">
-						<label className={labelCls}>
-							Data de Assinatura (Opcional)
-						</label>
+						<label className={labelCls}>Data de Assinatura (Opcional)</label>
 						<Popover>
 							<PopoverTrigger asChild>
 								<button
@@ -920,7 +961,11 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 										!dataAssinatura ? "text-slate-400" : ""
 									}`}
 								>
-									<span>{dataAssinatura ? formatDate(dataAssinatura) : "Selecione uma data"}</span>
+									<span>
+										{dataAssinatura
+											? formatDate(dataAssinatura)
+											: "Selecione uma data"}
+									</span>
 									<CalendarIcon className="w-3.5 h-3.5 text-slate-400" />
 								</button>
 							</PopoverTrigger>
@@ -928,7 +973,11 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 								<Calendar
 									mode="single"
 									locale={ptBR}
-									selected={dataAssinatura ? new Date(dataAssinatura + "T12:00:00") : undefined}
+									selected={
+										dataAssinatura
+											? new Date(`${dataAssinatura}T12:00:00`)
+											: undefined
+									}
 									onSelect={(date) => {
 										if (date) {
 											const y = date.getFullYear();
@@ -945,9 +994,7 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 					</div>
 
 					<div className="space-y-1.5">
-						<label className={labelCls}>
-							Data de Publicação (Opcional)
-						</label>
+						<label className={labelCls}>Data de Publicação (Opcional)</label>
 						<Popover>
 							<PopoverTrigger asChild>
 								<button
@@ -956,7 +1003,11 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 										!dataPublicacao ? "text-slate-400" : ""
 									}`}
 								>
-									<span>{dataPublicacao ? formatDate(dataPublicacao) : "Selecione uma data"}</span>
+									<span>
+										{dataPublicacao
+											? formatDate(dataPublicacao)
+											: "Selecione uma data"}
+									</span>
 									<CalendarIcon className="w-3.5 h-3.5 text-slate-400" />
 								</button>
 							</PopoverTrigger>
@@ -964,7 +1015,11 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 								<Calendar
 									mode="single"
 									locale={ptBR}
-									selected={dataPublicacao ? new Date(dataPublicacao + "T12:00:00") : undefined}
+									selected={
+										dataPublicacao
+											? new Date(`${dataPublicacao}T12:00:00`)
+											: undefined
+									}
 									onSelect={(date) => {
 										if (date) {
 											const y = date.getFullYear();
@@ -1239,7 +1294,9 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 									}
 									placeholder="Descreva o produto, modelo mínimo, requisitos técnicos legais..."
 									required
-									className={textareaErrCls(`item_${idx}_descricao_especificacao`)}
+									className={textareaErrCls(
+										`item_${idx}_descricao_especificacao`,
+									)}
 								/>
 								{fieldErrors[`item_${idx}_descricao_especificacao`] && (
 									<p className="text-[9px] text-red-600 font-semibold font-sans mt-0.5">
@@ -1326,113 +1383,119 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 							</div>
 							{hasParticipantes && fieldErrors[`item_${idx}_quantidade`] && (
 								<p className="text-[10px] text-red-600 font-bold font-sans mt-1 bg-red-50 p-2 border border-red-200">
-									Erro de Quantidade: {fieldErrors[`item_${idx}_quantidade`]} (A soma das quantidades dos órgãos participantes deve ser maior que zero)
+									Erro de Quantidade: {fieldErrors[`item_${idx}_quantidade`]} (A
+									soma das quantidades dos órgãos participantes deve ser maior
+									que zero)
 								</p>
 							)}
 
-						{/* ── Upload de Imagem do Produto ──────────── */}
-						<div className="border border-dashed border-slate-300 bg-slate-50/50 p-4 space-y-3">
-							<div className="flex items-center justify-between">
-								<label className="text-[9px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
-									<ImagePlus className="w-3.5 h-3.5" />
-									Imagem do Produto (Opcional)
-								</label>
-								{item.url_imagem && (
-									<button
-										type="button"
-										onClick={() => {
-											const u = [...itens];
-											u[idx] = { ...u[idx], url_imagem: "" };
-											setItens(u);
-										}}
-										className="flex items-center gap-1 text-[9px] font-bold text-red-600 hover:text-red-800 uppercase tracking-wider cursor-pointer transition"
-									>
-										<X className="w-3 h-3" />
-										Remover
-									</button>
-								)}
-							</div>
-
-							<div className="flex items-start gap-4">
-								{/* Preview */}
-								<div className="shrink-0 w-24 h-24 border border-slate-200 bg-white flex items-center justify-center overflow-hidden p-1">
-									{item.url_imagem ? (
-										<img
-											src={item.url_imagem}
-											alt="Preview do produto"
-											className="max-w-full max-h-full object-contain"
-											onError={(e) => {
-												(e.target as HTMLImageElement).style.display = "none";
+							{/* ── Upload de Imagem do Produto ──────────── */}
+							<div className="border border-dashed border-slate-300 bg-slate-50/50 p-4 space-y-3">
+								<div className="flex items-center justify-between">
+									<label className="text-[9px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+										<ImagePlus className="w-3.5 h-3.5" />
+										Imagem do Produto (Opcional)
+									</label>
+									{item.url_imagem && (
+										<button
+											type="button"
+											onClick={() => {
+												const u = [...itens];
+												u[idx] = { ...u[idx], url_imagem: "" };
+												setItens(u);
 											}}
-										/>
-									) : (
-										<Package className="w-8 h-8 text-slate-300" />
+											className="flex items-center gap-1 text-[9px] font-bold text-red-600 hover:text-red-800 uppercase tracking-wider cursor-pointer transition"
+										>
+											<X className="w-3 h-3" />
+											Remover
+										</button>
 									)}
 								</div>
 
-								{/* Input de arquivo e URL */}
-								<div className="flex-1 space-y-3">
-									<div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
-										<div>
-											<label
-												htmlFor={`img-upload-${idx}`}
-												className={`flex items-center justify-center gap-2 w-full py-2.5 border text-[10px] font-bold font-sans uppercase tracking-wider transition cursor-pointer ${
-													uploadingImageIdx === idx
-														? "bg-slate-100 text-slate-400 cursor-wait border-slate-200"
-														: "bg-white text-slate-700 border-slate-300 hover:bg-slate-50 hover:border-slate-500"
-												}`}
-											>
-												{uploadingImageIdx === idx ? (
-													<>
-														<Loader2 className="w-3.5 h-3.5 animate-spin" />
-														Enviando...
-													</>
-												) : (
-													<>
-														<ImagePlus className="w-3.5 h-3.5" />
-														{item.url_imagem ? "Trocar de Arquivo" : "Enviar Imagem"}
-													</>
-												)}
-											</label>
-											<input
-												id={`img-upload-${idx}`}
-												type="file"
-												accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
-												disabled={uploadingImageIdx !== null}
-												onChange={(e) => {
-													const file = e.target.files?.[0];
-													if (file) handleImageUpload(idx, file);
-													e.target.value = "";
+								<div className="flex items-start gap-4">
+									{/* Preview */}
+									<div className="shrink-0 w-24 h-24 border border-slate-200 bg-white flex items-center justify-center overflow-hidden p-1">
+										{item.url_imagem ? (
+											<img
+												src={item.url_imagem}
+												alt="Preview do produto"
+												className="max-w-full max-h-full object-contain"
+												onError={(e) => {
+													(e.target as HTMLImageElement).style.display = "none";
 												}}
-												className="hidden"
 											/>
-											<p className="text-[9px] text-slate-400 font-sans mt-1">
-												PNG, JPG, WEBP ou GIF (máx 5MB)
-											</p>
-										</div>
-
-										<div className="space-y-1">
-											<input
-												type="url"
-												placeholder="https://exemplo.com/imagem.png"
-												value={item.url_imagem}
-												onChange={(e) => handleItemChange(idx, "url_imagem", e.target.value)}
-												className={inputCls}
-											/>
-											<p className="text-[9px] text-slate-400 font-sans">
-												Ou cole a URL direta de uma imagem da internet
-											</p>
-										</div>
+										) : (
+											<Package className="w-8 h-8 text-slate-300" />
+										)}
 									</div>
 
-									{uploadImageError && uploadingImageIdx === null && (
-										<p className="text-[9px] text-red-600 font-sans font-semibold">
-											{uploadImageError}
-										</p>
-									)}
+									{/* Input de arquivo e URL */}
+									<div className="flex-1 space-y-3">
+										<div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+											<div>
+												<label
+													htmlFor={`img-upload-${idx}`}
+													className={`flex items-center justify-center gap-2 w-full py-2.5 border text-[10px] font-bold font-sans uppercase tracking-wider transition cursor-pointer ${
+														uploadingImageIdx === idx
+															? "bg-slate-100 text-slate-400 cursor-wait border-slate-200"
+															: "bg-white text-slate-700 border-slate-300 hover:bg-slate-50 hover:border-slate-500"
+													}`}
+												>
+													{uploadingImageIdx === idx ? (
+														<>
+															<Loader2 className="w-3.5 h-3.5 animate-spin" />
+															Enviando...
+														</>
+													) : (
+														<>
+															<ImagePlus className="w-3.5 h-3.5" />
+															{item.url_imagem
+																? "Trocar de Arquivo"
+																: "Enviar Imagem"}
+														</>
+													)}
+												</label>
+												<input
+													id={`img-upload-${idx}`}
+													type="file"
+													accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
+													disabled={uploadingImageIdx !== null}
+													onChange={(e) => {
+														const file = e.target.files?.[0];
+														if (file) handleImageUpload(idx, file);
+														e.target.value = "";
+													}}
+													className="hidden"
+												/>
+												<p className="text-[9px] text-slate-400 font-sans mt-1">
+													PNG, JPG, WEBP ou GIF (máx 5MB)
+												</p>
+											</div>
+
+											<div className="space-y-1">
+												<input
+													type="url"
+													placeholder="https://exemplo.com/imagem.png"
+													value={item.url_imagem}
+													onChange={(e) =>
+														handleItemChange(idx, "url_imagem", e.target.value)
+													}
+													className={inputCls}
+												/>
+												<p className="text-[9px] text-slate-400 font-sans">
+													Ou cole a URL direta de uma imagem da internet
+												</p>
+											</div>
+										</div>
+
+										{uploadImageError && uploadingImageIdx === null && (
+											<p className="text-[9px] text-red-600 font-sans font-semibold">
+												{uploadImageError}
+											</p>
+										)}
+									</div>
 								</div>
 							</div>
-						</div>
 
 							{/* ── Sub-tabela: Órgãos Participantes ────── */}
 							<div className="mt-2 border border-slate-200 bg-white">
@@ -1723,7 +1786,9 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 							className="flex gap-3 items-start border-b border-dashed border-slate-100 pb-3"
 						>
 							<div className="w-36 space-y-1.5 shrink-0">
-								<label className={`${labelCls} whitespace-nowrap`}>Limite Máximo (%) *</label>
+								<label className={`${labelCls} whitespace-nowrap`}>
+									Limite Máximo (%) *
+								</label>
 								<input
 									type="number"
 									min="0"
@@ -1774,7 +1839,9 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 					<div className="flex items-start gap-3 p-3 border border-red-300 bg-red-50 text-red-800 animate-fade-in">
 						<Info className="w-4 h-4 shrink-0 mt-0.5 text-red-600" />
 						<div>
-							<p className="text-[9px] font-bold uppercase tracking-wider text-red-700 mb-0.5">Erro ao Finalizar</p>
+							<p className="text-[9px] font-bold uppercase tracking-wider text-red-700 mb-0.5">
+								Erro ao Finalizar
+							</p>
 							<p className="text-[11px] font-sans leading-snug">{errorMsg}</p>
 						</div>
 					</div>

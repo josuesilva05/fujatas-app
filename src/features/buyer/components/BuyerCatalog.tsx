@@ -155,7 +155,7 @@ function ItemCard({
 	const percentual = item.ata.regras_carona?.[0]?.percentual_maximo_do_saldo
 		? Number.parseFloat(item.ata.regras_carona[0].percentual_maximo_do_saldo)
 		: 50;
-	const maxCaronaQty = Math.floor(totalOfertado * percentual / 100);
+	const maxCaronaQty = Math.floor((totalOfertado * percentual) / 100);
 	const maxAvailable = tipoAdesao === "direta" ? saldo : maxCaronaQty;
 
 	const consumidoPct =
@@ -310,7 +310,10 @@ function ItemCard({
 									onQtyChange(
 										Math.max(
 											1,
-											Math.min(maxAvailable, Number.parseInt(e.target.value, 10) || 1),
+											Math.min(
+												maxAvailable,
+												Number.parseInt(e.target.value, 10) || 1,
+											),
 										),
 									)
 								}
@@ -374,7 +377,7 @@ function ItemTableRow({
 	const percentual = item.ata.regras_carona?.[0]?.percentual_maximo_do_saldo
 		? Number.parseFloat(item.ata.regras_carona[0].percentual_maximo_do_saldo)
 		: 50;
-	const maxCaronaQty = Math.floor(totalOfertado * percentual / 100);
+	const maxCaronaQty = Math.floor((totalOfertado * percentual) / 100);
 	const maxAvailable = tipoAdesao === "direta" ? saldo : maxCaronaQty;
 	const isSoldOut = maxAvailable <= 0;
 
@@ -414,7 +417,10 @@ function ItemTableRow({
 								onQtyChange(
 									Math.max(
 										1,
-										Math.min(maxAvailable, Number.parseInt(e.target.value, 10) || 1),
+										Math.min(
+											maxAvailable,
+											Number.parseInt(e.target.value, 10) || 1,
+										),
 									),
 								)
 							}
@@ -483,8 +489,6 @@ export default function BuyerCatalog({
 
 	// View mode
 	const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-
-
 
 	// Add-to-cart state
 	const [addingItemId, setAddingItemId] = useState<string | null>(null);

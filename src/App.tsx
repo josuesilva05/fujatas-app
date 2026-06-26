@@ -69,13 +69,12 @@ function App() {
 				>
 					<circle
 						className="opacity-25"
-						cx="50"
-						cy="50"
-						r="45"
+						cx="12"
+						cy="12"
+						r="10"
 						fill="none"
 						stroke="currentColor"
-						strokeWidth="1.5"
-						strokeDasharray="3 2"
+						strokeWidth="2.5"
 					/>
 					<path
 						className="opacity-75"

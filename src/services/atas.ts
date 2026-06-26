@@ -8,6 +8,7 @@ import type {
 	AtaStatusUpdatePayload,
 	AtaUpdatePayload,
 	ItemSearchPageResponse,
+	ParsedAtaResponse,
 	SearchItemsParams,
 	VwSaldoItemAtaResponse,
 } from "@/types/ata";
@@ -123,11 +124,11 @@ export async function uploadItemImage(file: File): Promise<string> {
 	return `${API_BASE_URL}${response.data.url}`;
 }
 
-export async function parseAtaPdf(file: File): Promise<any> {
+export async function parseAtaPdf(file: File): Promise<ParsedAtaResponse> {
 	const formData = new FormData();
 	formData.append("file", file);
 
-	const response = await api.post<any>(
+	const response = await api.post<ParsedAtaResponse>(
 		"/uploads/parse-pdf",
 		formData,
 		{
@@ -136,4 +137,3 @@ export async function parseAtaPdf(file: File): Promise<any> {
 	);
 	return response.data;
 }
-
