@@ -215,12 +215,13 @@ export default function ManagerAtaMonitor({ user: _user }: ManagerAtaMonitorProp
 							))}
 						</div>
 
-						{/* ── Detail panel (full width, below the grid) ── */}
-						{selected && (
+						{/* ── Detail panel rendered in a Portal modal overlay ── */}
+						{selected && createPortal(
 							<DetailPanel
 								ata={selected}
 								onClose={() => setSelectedId(null)}
-							/>
+							/>,
+							document.body
 						)}
 					</>
 				)}
@@ -376,9 +377,6 @@ function AtaCard({
 	);
 }
 
-/* ══════════════════════════════════════════════════════════
-   DetailPanel — painel de detalhes expandido (full width)
-══════════════════════════════════════════════════════════════ */
 function DetailPanel({ ata, onClose }: { ata: AtaMonitorResponse; onClose: () => void }) {
 	const [auditOpen, setAuditOpen] = useState(false);
 	const [logs, setLogs] = useState<AtaAuditLogEntry[]>([]);
@@ -394,180 +392,185 @@ function DetailPanel({ ata, onClose }: { ata: AtaMonitorResponse; onClose: () =>
 	};
 
 	return (
-		<div className="border border-blue-200 bg-white animate-fade-in shadow-sm">
-			{/* Panel header */}
-			<div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-955/10 bg-[#F8FAFE]">
-				<div className="flex items-center gap-3">
-					<div className={`w-1.5 h-1.5 rounded-full ${S[ata.status]?.dot ?? "bg-slate-400"}`} />
-					<span className="text-[11px] font-bold font-sans text-slate-900 uppercase tracking-wider">
-						ATA nº {ata.numero_ata}
-					</span>
-					<span className="text-[9px] text-slate-500 font-sans">{ata.orgao_gerenciador_nome}</span>
-				</div>
-				<button type="button" onClick={onClose}
-					className="p-1.5 hover:bg-slate-200 transition cursor-pointer"
-				>
-					<X className="w-4 h-4 text-slate-400" />
-				</button>
-			</div>
-
-			{/* Metadata grid */}
-			<div className="px-5 py-4 grid grid-cols-2 md:grid-cols-4 gap-x-8 gap-y-3 border-b border-slate-955/8">
-				{[
-					{ label: "Processo", value: ata.processo_administrativo || "—" },
-					{ label: "Pregão", value: ata.numero_pregao || "—" },
-					{ label: "Assinatura", value: fmtDate(ata.data_assinatura) },
-					{ label: "Publicação", value: fmtDate(ata.data_publicacao) },
-					{ label: "Vigência", value: `${ata.vigencia_meses} meses` },
-					{ label: "Restam", value: `${calcDays(ata.vigencia_meses, ata.data_assinatura)} dias` },
-					{ label: "Valor Global", value: ata.valor_total_global ? fmtCurrency(ata.valor_total_global) : "—" },
-					{ label: "CNPJ Gerenciador", value: ata.orgao_gerenciador_cnpj },
-				].map(({ label, value }) => (
-					<div key={label}>
-						<span className="text-[8px] font-bold font-sans text-slate-400 uppercase tracking-wider block mb-0.5">{label}</span>
-						<span className="text-[10px] font-sans text-slate-800">{value}</span>
+		<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-in fade-in duration-200" onClick={onClose}>
+			<div className="bg-white border border-slate-200 w-full max-w-5xl shadow-2xl animate-in zoom-in-95 duration-200 flex flex-col max-h-[85vh]" onClick={e => e.stopPropagation()}>
+				{/* Panel header */}
+				<div className="flex items-center justify-between px-5 py-4 border-b border-slate-955/10 bg-[#F8FAFE] shrink-0">
+					<div className="flex items-center gap-3">
+						<div className={`w-1.5 h-1.5 rounded-full ${S[ata.status]?.dot ?? "bg-slate-400"}`} />
+						<span className="text-[11px] font-bold font-sans text-slate-900 uppercase tracking-wider">
+							ATA nº {ata.numero_ata}
+						</span>
+						<span className="text-[9px] text-slate-500 font-sans">{ata.orgao_gerenciador_nome}</span>
 					</div>
-				))}
-			</div>
-
-			{/* Items table */}
-			{ata.items.length > 0 && (
-				<div className="overflow-x-auto">
-					<table className="w-full text-[10px] font-sans">
-						<thead>
-							<tr className="bg-[#F4F7FA] border-b border-slate-955/8 text-[8px] font-bold text-slate-500 uppercase tracking-wider">
-								<th className="text-left px-4 py-2">Nº</th>
-								<th className="text-left px-4 py-2">Descrição</th>
-								<th className="text-right px-4 py-2">Val. Unit.</th>
-								<th className="text-right px-4 py-2">Fornecedor</th>
-								<th className="text-right px-4 py-2">Total</th>
-								<th className="text-right px-4 py-2">Consumido</th>
-								<th className="text-right px-4 py-2">Saldo</th>
-								<th className="text-right px-4 py-2 w-24">%</th>
-							</tr>
-						</thead>
-						<tbody className="divide-y divide-slate-955/6">
-							{ata.items.map(item => {
-								const pct = calcPct(item.quantidade_consumida, item.quantidade_total_ofertada);
-								return (
-									<tr key={item.id} className="hover:bg-slate-50/60 transition-colors">
-										<td className="px-4 py-2.5 text-slate-400 font-mono">{item.numero_item || "—"}</td>
-										<td className="px-4 py-2.5 text-slate-800 max-w-[220px]">
-											<span className="block truncate" title={item.descricao_especificacao}>{item.descricao_especificacao}</span>
-										</td>
-										<td className="px-4 py-2.5 text-right text-slate-700">{fmtCurrency(item.valor_unitario)}</td>
-										<td className="px-4 py-2.5 text-right text-slate-500 max-w-[140px]">
-											<span className="block truncate" title={item.fornecedor_razao_social}>{item.fornecedor_razao_social}</span>
-										</td>
-										<td className="px-4 py-2.5 text-right text-slate-700">{Number.parseFloat(item.quantidade_total_ofertada).toLocaleString("pt-BR")}</td>
-										<td className="px-4 py-2.5 text-right text-slate-700">{Number.parseFloat(item.quantidade_consumida).toLocaleString("pt-BR")}</td>
-										<td className="px-4 py-2.5 text-right font-bold text-slate-900">{Number.parseFloat(item.quantidade_saldo_disponivel).toLocaleString("pt-BR")}</td>
-										<td className="px-4 py-2.5 text-right">
-											<div className="flex items-center gap-1.5 justify-end">
-												<div className="w-12 h-1 bg-slate-100 overflow-hidden">
-													<div
-														className={`h-full ${pct >= 80 ? "bg-amber-500" : "bg-emerald-500"}`}
-														style={{ width: `${pct}%` }}
-													/>
-												</div>
-												<span className={`text-[8px] font-bold ${pct >= 80 ? "text-amber-600" : "text-emerald-600"}`}>{pct}%</span>
-											</div>
-										</td>
-									</tr>
-								);
-							})}
-						</tbody>
-					</table>
+					<button type="button" onClick={onClose}
+						className="p-1.5 hover:bg-slate-250 transition cursor-pointer"
+					>
+						<X className="w-4 h-4 text-slate-400" />
+					</button>
 				</div>
-			)}
 
-			{/* Participantes */}
-			{ata.items.some(i => i.participantes.length > 0) && (
-				<div className="border-t border-slate-955/8 px-5 py-4">
-					<span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider font-sans block mb-3">
-						Consumo por Participante
-					</span>
-					<div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-						{ata.items.filter(i => i.participantes.length > 0).map(item => (
-							<div key={item.id} className="border border-slate-955/8 p-3 bg-[#F8FAFE]">
-								<span className="text-[9px] font-bold text-slate-700 font-sans block mb-2 truncate" title={item.descricao_especificacao}>
-									{item.descricao_especificacao}
-								</span>
-								<div className="space-y-1.5">
-									{item.participantes.map(p => {
-										const pctP = calcPct(p.quantidade_consumida, p.quantidade_planejada);
-										return (
-											<div key={p.orgao_id} className="flex items-center gap-3">
-												<span className="text-[8px] text-slate-600 font-sans flex-1 truncate" title={p.nome_orgao}>{p.nome_orgao}</span>
-												<div className="w-20 h-1 bg-slate-200 overflow-hidden shrink-0">
-													<div className={`h-full ${pctP >= 80 ? "bg-amber-400" : "bg-emerald-400"}`} style={{ width:`${pctP}%` }} />
-												</div>
-												<span className={`text-[8px] font-bold w-8 text-right shrink-0 ${pctP >= 80 ? "text-amber-600" : "text-emerald-600"}`}>{pctP}%</span>
-											</div>
-										);
-									})}
-								</div>
+				{/* Scrollable Panel Body */}
+				<div className="flex-1 overflow-y-auto divide-y divide-slate-100">
+					{/* Metadata grid */}
+					<div className="px-5 py-4 grid grid-cols-2 md:grid-cols-4 gap-x-8 gap-y-3">
+						{[
+							{ label: "Processo", value: ata.processo_administrativo || "—" },
+							{ label: "Pregão", value: ata.numero_pregao || "—" },
+							{ label: "Assinatura", value: fmtDate(ata.data_assinatura) },
+							{ label: "Publicação", value: fmtDate(ata.data_publicacao) },
+							{ label: "Vigência", value: `${ata.vigencia_meses} meses` },
+							{ label: "Restam", value: `${calcDays(ata.vigencia_meses, ata.data_assinatura)} dias` },
+							{ label: "Valor Global", value: ata.valor_total_global ? fmtCurrency(ata.valor_total_global) : "—" },
+							{ label: "CNPJ Gerenciador", value: ata.orgao_gerenciador_cnpj },
+						].map(({ label, value }) => (
+							<div key={label}>
+								<span className="text-[8px] font-bold font-sans text-slate-400 uppercase tracking-wider block mb-0.5">{label}</span>
+								<span className="text-[10px] font-sans text-slate-800">{value}</span>
 							</div>
 						))}
 					</div>
-				</div>
-			)}
 
-			{/* Audit log accordion */}
-			<div className="border-t border-slate-955/8">
-				<div
-					role="button" tabIndex={0}
-					onClick={auditOpen && fetchedLogs ? () => setAuditOpen(false) : loadLogs}
-					onKeyDown={e => { if (e.key === "Enter" || e.key === " ") (auditOpen && fetchedLogs ? () => setAuditOpen(false) : loadLogs)(); }}
-					className="flex items-center gap-2 px-5 py-3 cursor-pointer hover:bg-slate-50 transition select-none"
-				>
-					<History className="w-3.5 h-3.5 text-slate-400" />
-					<span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider font-sans">Histórico de Alterações</span>
-					{loadingLogs && <Loader2 className="w-3 h-3 animate-spin text-slate-400" />}
-					<ChevronDown className={`w-3.5 h-3.5 text-slate-400 ml-auto transition-transform duration-200 ${auditOpen ? "rotate-180" : ""}`} />
-				</div>
-				{auditOpen && !loadingLogs && (
-					<div className="px-5 pb-4 animate-fade-in">
-						{logs.length === 0 ? (
-							<p className="text-[10px] text-slate-400 font-sans text-center py-3">Nenhuma alteração registrada.</p>
-						) : (
-							<div className="space-y-1.5">
-								{logs.map(log => (
-									<div key={log.id} className="border border-slate-955/8 bg-[#F8FAFE] px-3 py-2 text-[10px] font-sans">
-										<div className="flex items-center justify-between gap-4 flex-wrap">
-											<div className="flex items-center gap-2">
-												<span className={`text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 ${
-													log.acao === "INATIVACAO"   ? "bg-amber-100 text-amber-700" :
-													log.acao === "CANCELAMENTO" ? "bg-red-100 text-red-700" :
-													log.acao === "REATIVACAO"   ? "bg-emerald-100 text-emerald-700" :
-													                              "bg-slate-100 text-slate-600"
-												}`}>
-													{ACAO_LABEL[log.acao] ?? log.acao}
-												</span>
-												{log.campo_alterado && <span className="text-slate-500">{log.campo_alterado}</span>}
-											</div>
-											<div className="flex items-center gap-2 text-[9px] text-slate-400">
-												{log.usuario_email && <span>{log.usuario_email}</span>}
-												<span>·</span>
-												<span>{fmtDateTime(log.criado_em)}</span>
-											</div>
+					{/* Items table */}
+					{ata.items.length > 0 && (
+						<div className="overflow-x-auto">
+							<table className="w-full text-[10px] font-sans">
+								<thead>
+									<tr className="bg-[#F4F7FA] border-b border-slate-955/8 text-[8px] font-bold text-slate-500 uppercase tracking-wider">
+										<th className="text-left px-4 py-2">Nº</th>
+										<th className="text-left px-4 py-2">Descrição</th>
+										<th className="text-right px-4 py-2">Val. Unit.</th>
+										<th className="text-right px-4 py-2">Fornecedor</th>
+										<th className="text-right px-4 py-2">Total</th>
+										<th className="text-right px-4 py-2">Consumido</th>
+										<th className="text-right px-4 py-2">Saldo</th>
+										<th className="text-right px-4 py-2 w-24">%</th>
+									</tr>
+								</thead>
+								<tbody className="divide-y divide-slate-955/6">
+									{ata.items.map(item => {
+										const pct = calcPct(item.quantidade_consumida, item.quantidade_total_ofertada);
+										return (
+											<tr key={item.id} className="hover:bg-slate-50/60 transition-colors">
+												<td className="px-4 py-2.5 text-slate-400 font-mono">{item.numero_item || "—"}</td>
+												<td className="px-4 py-2.5 text-slate-800 max-w-[220px]">
+													<span className="block truncate" title={item.descricao_especificacao}>{item.descricao_especificacao}</span>
+												</td>
+												<td className="px-4 py-2.5 text-right text-slate-700">{fmtCurrency(item.valor_unitario)}</td>
+												<td className="px-4 py-2.5 text-right text-slate-500 max-w-[140px]">
+													<span className="block truncate" title={item.fornecedor_razao_social}>{item.fornecedor_razao_social}</span>
+												</td>
+												<td className="px-4 py-2.5 text-right text-slate-700">{Number.parseFloat(item.quantidade_total_ofertada).toLocaleString("pt-BR")}</td>
+												<td className="px-4 py-2.5 text-right text-slate-700">{Number.parseFloat(item.quantidade_consumida).toLocaleString("pt-BR")}</td>
+												<td className="px-4 py-2.5 text-right font-bold text-slate-900">{Number.parseFloat(item.quantidade_saldo_disponivel).toLocaleString("pt-BR")}</td>
+												<td className="px-4 py-2.5 text-right">
+													<div className="flex items-center gap-1.5 justify-end">
+														<div className="w-12 h-1 bg-slate-100 overflow-hidden">
+															<div
+																className={`h-full ${pct >= 80 ? "bg-amber-500" : "bg-emerald-500"}`}
+																style={{ width: `${pct}%` }}
+															/>
+														</div>
+														<span className={`text-[8px] font-bold ${pct >= 80 ? "text-amber-600" : "text-emerald-600"}`}>{pct}%</span>
+													</div>
+												</td>
+											</tr>
+										);
+									})}
+								</tbody>
+							</table>
+						</div>
+					)}
+
+					{/* Participantes */}
+					{ata.items.some(i => i.participantes.length > 0) && (
+						<div className="px-5 py-4">
+							<span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider font-sans block mb-3">
+								Consumo por Participante
+							</span>
+							<div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+								{ata.items.filter(i => i.participantes.length > 0).map(item => (
+									<div key={item.id} className="border border-slate-955/8 p-3 bg-[#F8FAFE]">
+										<span className="text-[9px] font-bold text-slate-700 font-sans block mb-2 truncate" title={item.descricao_especificacao}>
+											{item.descricao_especificacao}
+										</span>
+										<div className="space-y-1.5">
+											{item.participantes.map(p => {
+												const pctP = calcPct(p.quantidade_consumida, p.quantidade_planejada);
+												return (
+													<div key={p.orgao_id} className="flex items-center gap-3">
+														<span className="text-[8px] text-slate-600 font-sans flex-1 truncate" title={p.nome_orgao}>{p.nome_orgao}</span>
+														<div className="w-20 h-1 bg-slate-200 overflow-hidden shrink-0">
+															<div className={`h-full ${pctP >= 80 ? "bg-amber-400" : "bg-emerald-400"}`} style={{ width:`${pctP}%` }} />
+														</div>
+														<span className={`text-[8px] font-bold w-8 text-right shrink-0 ${pctP >= 80 ? "text-amber-600" : "text-emerald-600"}`}>{pctP}%</span>
+													</div>
+												);
+											})}
 										</div>
-										{(log.valor_anterior || log.valor_novo) && (
-											<div className="flex items-center gap-2 mt-1 text-[9px]">
-												{log.valor_anterior && <span className="line-through text-slate-400">{log.valor_anterior}</span>}
-												{log.valor_anterior && log.valor_novo && <span className="text-slate-300">→</span>}
-												{log.valor_novo && <span className="font-bold text-slate-700">{log.valor_novo}</span>}
-											</div>
-										)}
-										{log.justificativa && (
-											<p className="mt-1 text-[9px] text-slate-500 italic">"{log.justificativa}"</p>
-										)}
 									</div>
 								))}
 							</div>
+						</div>
+					)}
+
+					{/* Audit log accordion */}
+					<div>
+						<div
+							role="button" tabIndex={0}
+							onClick={auditOpen && fetchedLogs ? () => setAuditOpen(false) : loadLogs}
+							onKeyDown={e => { if (e.key === "Enter" || e.key === " ") (auditOpen && fetchedLogs ? () => setAuditOpen(false) : loadLogs)(); }}
+							className="flex items-center gap-2 px-5 py-3 cursor-pointer hover:bg-slate-50 transition select-none"
+						>
+							<History className="w-3.5 h-3.5 text-slate-400" />
+							<span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider font-sans">Histórico de Alterações</span>
+							{loadingLogs && <Loader2 className="w-3 h-3 animate-spin text-slate-400" />}
+							<ChevronDown className={`w-3.5 h-3.5 text-slate-400 ml-auto transition-transform duration-200 ${auditOpen ? "rotate-180" : ""}`} />
+						</div>
+						{auditOpen && !loadingLogs && (
+							<div className="px-5 pb-4 animate-fade-in">
+								{logs.length === 0 ? (
+									<p className="text-[10px] text-slate-400 font-sans text-center py-3">Nenhuma alteração registrada.</p>
+								) : (
+									<div className="space-y-1.5">
+										{logs.map(log => (
+											<div key={log.id} className="border border-slate-955/8 bg-[#F8FAFE] px-3 py-2 text-[10px] font-sans">
+												<div className="flex items-center justify-between gap-4 flex-wrap">
+													<div className="flex items-center gap-2">
+														<span className={`text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 ${
+															log.acao === "INATIVACAO"   ? "bg-amber-100 text-amber-700" :
+															log.acao === "CANCELAMENTO" ? "bg-red-100 text-red-700" :
+															log.acao === "REATIVACAO"   ? "bg-emerald-100 text-emerald-700" :
+															                              "bg-slate-100 text-slate-600"
+														}`}>
+															{ACAO_LABEL[log.acao] ?? log.acao}
+														</span>
+														{log.campo_alterado && <span className="text-slate-500">{log.campo_alterado}</span>}
+													</div>
+													<div className="flex items-center gap-2 text-[9px] text-slate-400">
+														{log.usuario_email && <span>{log.usuario_email}</span>}
+														<span>·</span>
+														<span>{fmtDateTime(log.criado_em)}</span>
+													</div>
+												</div>
+												{(log.valor_anterior || log.valor_novo) && (
+													<div className="flex items-center gap-2 mt-1 text-[9px]">
+														{log.valor_anterior && <span className="line-through text-slate-400">{log.valor_anterior}</span>}
+														{log.valor_anterior && log.valor_novo && <span className="text-slate-300">→</span>}
+														{log.valor_novo && <span className="font-bold text-slate-700">{log.valor_novo}</span>}
+													</div>
+												)}
+												{log.justificativa && (
+													<p className="mt-1 text-[9px] text-slate-500 italic">"{log.justificativa}"</p>
+												)}
+											</div>
+										))}
+									</div>
+								)}
+							</div>
 						)}
 					</div>
-				)}
+				</div>
 			</div>
 		</div>
 	);

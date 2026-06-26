@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { getAta, listSuppliers, searchItems } from "@/services/atas";
+import { listSuppliers, searchItems } from "@/services/atas";
 import type { ItemSearchResponse } from "@/types/ata";
 import type { FornecedorResponse } from "@/types/supplier";
 

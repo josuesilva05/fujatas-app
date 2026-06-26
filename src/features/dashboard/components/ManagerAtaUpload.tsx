@@ -380,6 +380,18 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 		setRegras(u);
 	};
 
+	const handleAddRegra = () => {
+		setRegras([
+			...regras,
+			{ percentual_maximo_do_saldo: 50, descricao: "" },
+		]);
+	};
+
+	const handleRemoveRegra = (idx: number) => {
+		if (regras.length === 1) return;
+		setRegras(regras.filter((_, i) => i !== idx));
+	};
+
 	/* ── Handler de Upload de Imagem ────────────────────── */
 
 	const handleImageUpload = async (idx: number, file: File) => {
@@ -1694,6 +1706,14 @@ export default function ManagerAtaUpload({ user }: ManagerAtaUploadProps) {
 					<span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
 						§ DIRETRIZES E LIMITES DE CARONA
 					</span>
+					<button
+						type="button"
+						onClick={handleAddRegra}
+						className="text-[10px] font-bold uppercase tracking-wider text-blue-600 hover:text-blue-800 transition flex items-center gap-1 cursor-pointer"
+					>
+						<Plus className="w-3.5 h-3.5" />
+						<span>Adicionar Diretriz</span>
+					</button>
 				</div>
 
 				<div className="space-y-4 max-h-[300px] overflow-y-auto pr-1">
