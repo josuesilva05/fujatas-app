@@ -17,6 +17,7 @@ import {
 	ManagerApprovals,
 	ManagerAtaMonitor,
 	ManagerAtaUpload,
+	ManagerEntities,
 	SupplierBalances,
 	SupplierSales,
 } from "@/features/dashboard";
@@ -409,6 +410,7 @@ export default function DashboardPage({ user, onLogout }: DashboardPageProps) {
 								{activeTab === "monitoramento" && (
 									<ManagerAtaMonitor user={user} />
 								)}
+								{activeTab === "cadastros" && <ManagerEntities user={user} />}
 							</>
 						)}
 
