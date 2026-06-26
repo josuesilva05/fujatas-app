@@ -1,43 +1,86 @@
-import type { SupplierBalance, SupplierOrder } from "@/types/supplier";
+import type {
+	FornecedorResponse,
+	SupplierBalance,
+	SupplierOrder,
+} from "@/types/supplier";
 import { api } from "./api";
+
+export interface SupplierItemsResponse<T = SupplierBalance> {
+	content: T[];
+	totalElements: number;
+	totalPages: number;
+	number?: number;
+	size?: number;
+	first?: boolean;
+	last?: boolean;
+}
+function extractPage<T>(
+	data: unknown,
+	limit: number,
+): SupplierItemsResponse<T> {
+	limit = Math.max(1, limit);
+
+	if (Array.isArray(data)) {
+		return {
+			content: data as T[],
+			totalElements: data.length,
+			totalPages: Math.ceil(data.length / limit),
+			number: 0,
+			size: limit,
+			first: true,
+			last: data.length <= limit,
+		};
+	}
+
+	if (data && typeof data === "object") {
+		const obj = data as Record<string, unknown>;
+		const content = (Array.isArray(obj.content) ? obj.content : []) as T[];
+		const totalElements =
+			typeof obj.totalElements === "number"
+				? obj.totalElements
+				: content.length;
+		const totalPages =
+			typeof obj.totalPages === "number"
+				? obj.totalPages
+				: Math.ceil(totalElements / limit);
+
+		return {
+			content,
+			totalElements,
+			totalPages,
+			number: typeof obj.number === "number" ? obj.number : undefined,
+			size: typeof obj.size === "number" ? obj.size : limit,
+			first: typeof obj.first === "boolean" ? obj.first : undefined,
+			last: typeof obj.last === "boolean" ? obj.last : undefined,
+		};
+	}
+
+	return { content: [], totalElements: 0, totalPages: 0, size: limit };
+}
 
 export async function getSupplierBalances(
 	supplierId: string,
-): Promise<SupplierBalance[]> {
-	try {
-		const url = `/suppliers/${supplierId}/items`;
+	params: { skip?: number; limit?: number; q?: string } = {},
+): Promise<SupplierItemsResponse> {
+	const response = await api.get(`/suppliers/${supplierId}/items`, {
+		params,
+	});
+	return extractPage<SupplierBalance>(response.data, params.limit ?? 8);
+}
 
-		console.log("URL BALANCES:", url);
-
-		const response = await api.get(url);
-
-		console.log("BALANCES RESPONSE:", response);
-
-		return response.data?.content || [];
-	} catch (error: unknown) {
-		console.error("BALANCES ERROR:", error);
-
-		const axiosErr = error as {
-			response?: { status?: number; data?: unknown };
-		};
-		if (axiosErr.response) {
-			console.error("STATUS:", axiosErr.response.status);
-			console.error("DATA:", axiosErr.response.data);
-		}
-
-		throw error;
-	}
+export async function getSuppliers(
+	params: { skip?: number; limit?: number; q?: string } = {},
+): Promise<SupplierItemsResponse<FornecedorResponse>> {
+	const response = await api.get("/suppliers", { params });
+	return extractPage<FornecedorResponse>(response.data, params.limit ?? 8);
 }
 
 export async function getSupplierOrders(
 	supplierId: string,
-): Promise<SupplierOrder[]> {
-	try {
-		const response = await api.get(`/suppliers/${supplierId}/orders`);
-
-		return response.data?.content || [];
-	} catch (error) {
-		console.error(error);
-		throw error;
-	}
+	params: { skip?: number; limit?: number } = {},
+): Promise<SupplierItemsResponse<SupplierOrder>> {
+	const response = await api.get(`/suppliers/${supplierId}/orders`, {
+		params,
+	});
+	return extractPage<SupplierOrder>(response.data, params.limit ?? 8);
 }
