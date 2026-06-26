@@ -27,3 +27,5 @@ dist-ssr
 .agents/
 .gemini/
 skills-lock.json
+.vercel
+.env*
