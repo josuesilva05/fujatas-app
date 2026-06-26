@@ -524,11 +524,11 @@ export default function SupplierSales({ user }: SupplierSalesProps) {
 								</p>
 								<div className="border border-slate-955/10 p-4 bg-[#F4F7FA]/50 space-y-2">
 									<div className="flex justify-between items-center">
-										<span className="font-semibold text-slate-700 text-xs">
-											Total de Pedidos
-										</span>
-										<strong className="text-sm font-bold text-slate-955">
-											{totalItems}
+											<span className="font-semibold text-slate-700 text-xs">
+												Total de Pedidos (página)
+											</span>
+											<strong className="text-sm font-bold text-slate-955">
+												{orders.length}
 										</strong>
 									</div>
 									<div className="border-t border-slate-955/5 pt-2 space-y-1.5">
