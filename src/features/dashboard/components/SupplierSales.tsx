@@ -452,9 +452,9 @@ export default function SupplierSales({ user }: SupplierSalesProps) {
 								>
 									<div className="flex justify-between items-start border-b border-slate-955/10 pb-3 mb-3">
 										<div className="flex items-center gap-2">
-											<span
-												className={`w-2 h-2 rounded-full inline-block ${s.color.replace("text-", "bg-").replace("800", "500")}`}
-											/>
+										<span
+											className={`w-2 h-2 rounded-full inline-block bg-current ${s.color}`}
+										/>
 											<div>
 												<h3 className="font-semibold text-slate-900 text-sm">
 													{order.orgao_comprador?.nome}
